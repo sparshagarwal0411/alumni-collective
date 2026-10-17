@@ -7,7 +7,7 @@ import arjunPortrait from "@/assets/alumni/arjun-nair.jpg";
 import priyaPortrait from "@/assets/alumni/priya-ramanathan.jpg";
 import { COLLEGE, SampleTag, Section } from "@/components/site/ui";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { fmtDate, fmtMoney, fundsQuery, notableQuery, profilesQuery, updatesQuery } from "@/lib/queries";
+import { fmtDate, fmtMoney, fundsQuery, notableQuery, profilesQuery, tasksQuery, updatesQuery } from "@/lib/queries";
 import { MOCK_PROFILES } from "@/lib/mockData";
 
 const PORTRAITS = {
@@ -42,6 +42,7 @@ function Home() {
   const updates = useQuery(updatesQuery);
   const funds = useQuery(fundsQuery);
   const notable = useQuery(notableQuery);
+  const tasks = useQuery(tasksQuery);
   const people = profiles.data ?? [];
   const mentors = people.filter((p) => p.open_to_mentor).length;
   const cities = new Set(people.map((p) => p.city).filter(Boolean)).size;
@@ -116,6 +117,38 @@ function Home() {
             </li>
           ))}
         </ol>
+      </Section>
+
+      <Section className="mt-28">
+        <div className="flex flex-wrap items-end justify-between gap-4 border-b border-foreground pb-3">
+          <div>
+            <p className="eyebrow">Microtasks · Proof of work</p>
+            <h2 className="mt-2 text-3xl">Small favours, permanent credit.</h2>
+          </div>
+          <Link to="/tasks" className="link-u text-sm">
+            Browse all microtasks
+          </Link>
+        </div>
+        <div className="grid gap-6 pt-8 md:grid-cols-3">
+          {(tasks.data ?? [])
+            .filter((task) => task.status === "open")
+            .slice(0, 3)
+            .map((task) => (
+              <article key={task.id} className="flex h-full flex-col border border-rule bg-paper p-5">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="eyebrow">{task.hours} hr{task.hours === 1 ? "" : "s"} · +{Number(task.hours) * 5} pts</span>
+                  <span className="border border-accent/40 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-accent">
+                    Open
+                  </span>
+                </div>
+                <h3 className="mt-6 font-display text-2xl leading-snug">{task.title}</h3>
+                <p className="mt-3 flex-1 text-sm leading-relaxed text-ink-soft">{task.description}</p>
+                <Link to="/tasks" className="mt-6 text-sm text-foreground hover:text-accent">
+                  Claim a task →
+                </Link>
+              </article>
+            ))}
+        </div>
       </Section>
 
       <Section className="mt-28">
