@@ -9,6 +9,8 @@ import { COLLEGE, SampleTag, Section } from "@/components/site/ui";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { fmtDate, fmtMoney, fundsQuery, notableQuery, profilesQuery, tasksQuery, updatesQuery } from "@/lib/queries";
 import { MOCK_PROFILES } from "@/lib/mockData";
+import { CompanyLogo } from "@/components/companies/CompanyLogo";
+import { getAlumniPortrait } from "@/lib/portraits";
 
 const PORTRAITS = {
   "arjun-nair": arjunPortrait,
@@ -141,13 +143,7 @@ function Home() {
                 <CarouselItem key={company.name} className="basis-full pl-3 sm:basis-1/2 md:basis-1/3">
                   <article className="h-full border border-rule bg-paper p-5 transition-colors hover:border-accent">
                     <div className="flex items-start justify-between gap-4">
-                      <div
-                        className="flex h-12 w-12 items-center justify-center rounded-sm text-2xl font-semibold"
-                        style={{ backgroundColor: `${company.color}18`, color: company.color }}
-                        aria-hidden="true"
-                      >
-                        {company.mark}
-                      </div>
+                      <CompanyLogo company={company.name} size="lg" className="h-12 w-12 shadow-xs" />
                       <Building2 className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
                     </div>
                     <h3 className="mt-8 font-display text-2xl">{company.name}</h3>
@@ -196,7 +192,7 @@ function Home() {
         <div className="mt-12">
           {notableCards.map(({ person, distinction, accolade, photo }, i) => {
             const photoRight = i % 2 === 1;
-            const portrait = photo ? PORTRAITS[photo] : undefined;
+            const portrait = (photo && PORTRAITS[photo]) || getAlumniPortrait(person.id);
             return (
               <Link
                 key={person.id}
@@ -233,9 +229,12 @@ function Home() {
                   <h3 className="mt-3 font-display text-4xl leading-tight group-hover:text-accent md:text-5xl">
                     {person.full_name}
                   </h3>
-                  <p className="mt-3 text-ink-soft">
-                    {person.role_title} · {person.company}
-                  </p>
+                  <div className={`mt-3 flex items-center gap-2 text-ink-soft ${photoRight ? "md:justify-end" : ""}`}>
+                    {person.company && <CompanyLogo company={person.company} size="xs" />}
+                    <span>
+                      {person.role_title} · {person.company}
+                    </span>
+                  </div>
                   <p className="mt-1 font-mono text-[11px] uppercase tracking-wider text-accent">
                     Class of {person.grad_year}
                   </p>
