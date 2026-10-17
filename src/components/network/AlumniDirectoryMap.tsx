@@ -1,4 +1,4 @@
-import { Loader } from "@googlemaps/js-api-loader";
+import { importLibrary, setOptions } from "@googlemaps/js-api-loader";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Profile } from "@/lib/mockData";
 
@@ -95,7 +95,7 @@ export function AlumniDirectoryMap({ people, selectedCity, onSelectCity, classNa
   }, [people]);
 
   useEffect(() => {
-    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+    const apiKey = import.meta.env["VITE_GOOGLE_MAPS_API_KEY"];
     if (!apiKey) {
       setIsLoading(false);
       setMapError("Google Maps is not configured. Add VITE_GOOGLE_MAPS_API_KEY to your deployment environment.");
@@ -104,12 +104,10 @@ export function AlumniDirectoryMap({ people, selectedCity, onSelectCity, classNa
     if (!mapElementRef.current) return;
 
     let cancelled = false;
-    const loader = new Loader({ apiKey, version: "weekly" });
-    loader
-      .importLibrary("maps")
-      .then(async () => {
+    setOptions({ apiKey, version: "weekly" });
+    Promise.all([importLibrary("maps"), importLibrary("marker")])
+      .then(() => {
         if (cancelled || !mapElementRef.current) return;
-        await google.maps.importLibrary("marker");
         mapRef.current = new google.maps.Map(mapElementRef.current, {
           center: { lat: 25, lng: 25 },
           zoom: 2,
