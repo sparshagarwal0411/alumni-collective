@@ -2,6 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import { Empty, ErrorNote, Loading, Monogram, PageHead, SampleTag, Section } from "@/components/site/ui";
+import { CompanyLogo } from "@/components/companies/CompanyLogo";
+import { getAlumniPortrait } from "@/lib/portraits";
 import { profilesQuery } from "@/lib/queries";
 
 const search = z.object({
@@ -75,12 +77,23 @@ function Directory() {
               {rows.map((p) => (
                 <li key={p.id} className="border-b border-rule">
                   <Link to="/alumni/$id" params={{ id: p.id }} className="group grid grid-cols-[auto_minmax(0,1fr)] items-center gap-4 py-5 md:grid-cols-[auto_minmax(0,3fr)_minmax(0,2fr)_6rem] md:gap-6">
-                    <Monogram name={p.full_name} />
+                    {getAlumniPortrait(p.id) ? (
+                      <img
+                        src={getAlumniPortrait(p.id)!}
+                        alt={p.full_name}
+                        className="h-12 w-12 rounded-sm border border-rule object-cover object-top shadow-xs"
+                      />
+                    ) : (
+                      <Monogram name={p.full_name} />
+                    )}
                     <div className="min-w-0">
                       <p className="truncate font-display text-xl group-hover:text-accent">
                         {p.full_name || "Unnamed"}<SampleTag show={p.is_sample} />
                       </p>
-                      <p className="truncate text-sm text-ink-soft">{[p.role_title, p.company].filter(Boolean).join(", ") || p.headline}</p>
+                      <div className="flex items-center gap-1.5 truncate text-sm text-ink-soft">
+                        {p.company && <CompanyLogo company={p.company} size="xs" />}
+                        <span className="truncate">{[p.role_title, p.company].filter(Boolean).join(", ") || p.headline}</span>
+                      </div>
                     </div>
                     <p className="col-start-2 truncate text-sm text-muted-foreground md:col-start-auto">{[p.department, p.city].filter(Boolean).join(" · ")}</p>
                     <p className="hidden text-right font-mono text-sm md:block">

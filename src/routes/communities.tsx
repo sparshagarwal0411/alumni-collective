@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { Loading, Monogram, PageHead, SampleTag, Section } from "@/components/site/ui";
+import { CompanyLogo } from "@/components/companies/CompanyLogo";
 import { companiesQuery, profilesQuery, societiesQuery } from "@/lib/queries";
 
 export const Route = createFileRoute("/communities")({
@@ -106,12 +107,17 @@ function CommunitiesPage() {
             <div className="mt-8 grid gap-px bg-rule sm:grid-cols-2 lg:grid-cols-3">
               {companies.map((co) => (
                 <article key={co.id} className="bg-background p-7">
-                  <p className="eyebrow">
-                    {co.industry}
-                    <SampleTag />
-                  </p>
-                  <h2 className="mt-2 font-display text-2xl">{co.company}</h2>
-                  <p className="mt-1 font-mono text-xs text-muted-foreground">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="eyebrow">
+                        {co.industry}
+                        <SampleTag />
+                      </p>
+                      <h2 className="mt-2 font-display text-2xl">{co.company}</h2>
+                    </div>
+                    <CompanyLogo company={co.company} size="lg" className="shrink-0 shadow-xs" />
+                  </div>
+                  <p className="mt-2 font-mono text-xs text-muted-foreground">
                     {co.alumniCount} alumni · {co.cities.join(" · ")}
                   </p>
                   <p className="mt-3 text-sm leading-relaxed text-ink-soft">{co.summary}</p>

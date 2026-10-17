@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState, useMemo } from "react";
 import { Empty, ErrorNote, Loading, PageHead, SampleTag, Section } from "@/components/site/ui";
+import { CompanyLogo } from "@/components/companies/CompanyLogo";
 import { jobsQuery, profilesQuery } from "@/lib/queries";
 import { toast } from "sonner";
 
@@ -129,22 +130,24 @@ function JobsPage() {
                     key={job.id}
                     className="group py-8 transition-colors md:grid md:grid-cols-12 md:gap-8"
                   >
-                    <div className="md:col-span-8 space-y-3">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
-                          {job.kind}
-                        </span>
-                        <span className="text-muted-foreground">·</span>
-                        <span className="font-display text-lg text-foreground font-semibold">
-                          {job.company}
-                        </span>
-                        <SampleTag show={job.is_sample} />
-                        {job.referral_available && (
-                          <span className="border border-accent/40 bg-paper px-2 py-0.5 font-mono text-[10px] uppercase text-accent">
-                            Referral Offered
+                    <div className="md:col-span-8 flex items-start gap-4">
+                      <CompanyLogo company={job.company} size="lg" className="mt-1 shrink-0 shadow-xs" />
+                      <div className="space-y-3 min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
+                            {job.kind}
                           </span>
-                        )}
-                      </div>
+                          <span className="text-muted-foreground">·</span>
+                          <span className="font-display text-lg text-foreground font-semibold">
+                            {job.company}
+                          </span>
+                          <SampleTag show={job.is_sample} />
+                          {job.referral_available && (
+                            <span className="border border-accent/40 bg-paper px-2 py-0.5 font-mono text-[10px] uppercase text-accent">
+                              Referral Offered
+                            </span>
+                          )}
+                        </div>
 
                       <h3 className="font-display text-3xl text-foreground group-hover:text-accent transition-colors">
                         {job.title}
@@ -170,6 +173,7 @@ function JobsPage() {
                         )}
                       </div>
                     </div>
+                  </div>
 
                     <div className="mt-6 flex flex-col justify-between gap-4 md:mt-0 md:col-span-4 md:items-end">
                       <div className="text-right">
