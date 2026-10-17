@@ -44,7 +44,7 @@ function GivePage() {
   const finalAmount = customAmount ? Number(customAmount) : selectedAmount;
 
   return (
-    <>
+    <div className="space-y-12 pb-24">
       <PageHead
         index="IX."
         eyebrow="Stewardship"
@@ -52,7 +52,25 @@ function GivePage() {
         lede="Since 1887, every lecture hall bench, laboratory instrument, and bursary at Ashwood has existed because an alumnus chose to remember where they began."
       />
 
-      <Section>
+      {funds[0] && (
+        <Section className="!mt-8">
+          <div className="grid gap-10 bg-paper px-6 py-12 md:grid-cols-12 md:px-12 border border-rule">
+            <div className="md:col-span-7">
+              <p className="eyebrow">Giving · {funds[0].name}<SampleTag show={funds[0].is_sample} /></p>
+              <p className="mt-4 font-display text-3xl leading-snug md:text-4xl">
+                “I was the first in my family to see the inside of a lecture hall. Someone I never met paid for it.”
+              </p>
+              <p className="mt-4 text-sm text-muted-foreground">— Scholarship recipient, Class of 2019 (illustrative)</p>
+            </div>
+            <div className="md:col-span-4 md:col-start-9 md:self-center">
+              <p className="font-display text-5xl">{fmtMoney(funds[0].raised_amount)}</p>
+              <p className="text-sm text-muted-foreground">of {fmtMoney(funds[0].goal_amount)} goal</p>
+            </div>
+          </div>
+        </Section>
+      )}
+
+      <Section className="!mt-8">
         {fundsResult.isLoading ? (
           <Loading label="Consulting endowment ledgers" />
         ) : fundsResult.error ? (
@@ -226,6 +244,6 @@ function GivePage() {
           </div>
         )}
       </Section>
-    </>
+    </div>
   );
 }

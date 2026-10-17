@@ -94,32 +94,7 @@ function Home() {
         </dl>
       </Section>
 
-      <Section className="mt-28 grid gap-12 md:grid-cols-12">
-        <div className="md:col-span-4">
-          <h2 className="text-4xl leading-tight">What the community does here.</h2>
-        </div>
-        <ol className="md:col-span-7 md:col-start-6">
-          {[
-            ["/directory", "Find people", "Search by class year, discipline, city or what they know."],
-            ["/mentorship", "Mentor and be mentored", "Request an hour of someone's attention, or offer yours."],
-            ["/jobs", "Pass on opportunity", "Post roles, ask for referrals, vouch for juniors."],
-            ["/tasks", "Lend a small hand", "Thirty-minute favours: a deck review, a proofread, a test."],
-            ["/network", "See the web of it", "An interactive map of who knows whom."],
-            ["/events", "Attend an event", "Reunions, workshops, and campus celebrations on the association calendar."],
-            ["/communities", "Explore communities", "Campus societies and the companies where alumni now work."],
-          ].map(([to, t, d], i) => (
-            <li key={to} className="group grid grid-cols-[3rem_1fr] items-baseline border-t border-rule py-6 last:border-b">
-              <span className="font-mono text-xs text-muted-foreground">0{i + 1}</span>
-              <Link to={to} className="block">
-                <span className="font-display text-2xl group-hover:text-accent md:text-3xl">{t} →</span>
-                <span className="mt-1 block text-ink-soft">{d}</span>
-              </Link>
-            </li>
-          ))}
-        </ol>
-      </Section>
-
-      <Section className="mt-28">
+      {/* <Section className="mt-28">
         <div className="flex flex-wrap items-end justify-between gap-4 border-b border-foreground pb-3">
           <div>
             <p className="eyebrow">Microtasks · Proof of work</p>
@@ -149,9 +124,9 @@ function Home() {
               </article>
             ))}
         </div>
-      </Section>
+      </Section> */}
 
-      <Section className="mt-28">
+      {/* <Section className="mt-28">
         <div className="flex flex-wrap items-end justify-between gap-4 border-b border-foreground pb-3">
           <div>
             <p className="eyebrow">The hiring register</p>
@@ -186,7 +161,7 @@ function Home() {
             <CarouselNext className="-right-10 md:-right-12" aria-label="Next recruiter" />
           </Carousel>
         </div>
-      </Section>
+      </Section> */}
 
       <Section className="mt-28">
         <div className="flex items-baseline justify-between border-b border-foreground pb-3">
@@ -203,25 +178,6 @@ function Home() {
           ))}
         </div>
       </Section>
-
-      {funds.data && funds.data[0] && (
-        <Section className="mt-24">
-          <div className="grid gap-10 bg-paper px-6 py-14 md:grid-cols-12 md:px-12">
-            <div className="md:col-span-7">
-              <p className="eyebrow">Giving · {funds.data[0].name}<SampleTag show={funds.data[0].is_sample} /></p>
-              <p className="mt-4 font-display text-3xl leading-snug md:text-4xl">
-                “I was the first in my family to see the inside of a lecture hall. Someone I never met paid for it.”
-              </p>
-              <p className="mt-4 text-sm text-muted-foreground">— Scholarship recipient, Class of 2019 (illustrative)</p>
-            </div>
-            <div className="md:col-span-4 md:col-start-9 md:self-end">
-              <p className="font-display text-5xl">{fmtMoney(funds.data[0].raised_amount)}</p>
-              <p className="text-sm text-muted-foreground">of {fmtMoney(funds.data[0].goal_amount)} goal</p>
-              <Link to="/give" className="mt-6 inline-block bg-accent px-5 py-2.5 text-sm text-accent-foreground hover:bg-primary">Make a gift</Link>
-            </div>
-          </div>
-        </Section>
-      )}
 
       <Section className="mt-28">
         <div className="flex items-baseline justify-between border-b border-foreground pb-3">
@@ -290,6 +246,30 @@ function Home() {
             );
           })}
         </div>
+      </Section>
+            <Section className="mt-28 grid gap-12 md:grid-cols-12">
+        <div className="md:col-span-4">
+          <h2 className="text-4xl leading-tight">What the community does here.</h2>
+        </div>
+        <ol className="md:col-span-7 md:col-start-6">
+          {[
+            ["/directory", "Find people", "Search by class year, discipline, city or what they know."],
+            ["/mentorship", "Mentor and be mentored", "Request an hour of someone's attention, or offer yours."],
+            ["/jobs", "Pass on opportunity", "Post roles, ask for referrals, vouch for juniors."],
+            ["/tasks", "Lend a small hand", "Thirty-minute favours: a deck review, a proofread, a test."],
+            ["/network", "See the web of it", "An interactive map of who knows whom."],
+            ["/events", "Attend an event", "Reunions, workshops, and campus celebrations on the association calendar."],
+            ["/communities", "Explore communities", "Campus societies and the companies where alumni now work."],
+          ].map(([to, t, d], i) => (
+            <li key={to} className="group grid grid-cols-[3rem_1fr] items-baseline border-t border-rule py-6 last:border-b">
+              <span className="font-mono text-xs text-muted-foreground">0{i + 1}</span>
+              <Link to={to} className="block">
+                <span className="font-display text-2xl group-hover:text-accent md:text-3xl">{t} →</span>
+                <span className="mt-1 block text-ink-soft">{d}</span>
+              </Link>
+            </li>
+          ))}
+        </ol>
       </Section>
     </>
   );
