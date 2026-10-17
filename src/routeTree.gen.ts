@@ -10,33 +10,232 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AccountRouteImport } from './routes/account'
+import { Route as AnalyticsRouteImport } from './routes/analytics'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as CommunitiesRouteImport } from './routes/communities'
+import { Route as DirectoryRouteImport } from './routes/directory'
+import { Route as EventsRouteImport } from './routes/events'
+import { Route as GiveRouteImport } from './routes/give'
+import { Route as JobsRouteImport } from './routes/jobs'
+import { Route as MentorshipRouteImport } from './routes/mentorship'
+import { Route as MessagesRouteImport } from './routes/messages'
+import { Route as NetworkRouteImport } from './routes/network'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as TasksRouteImport } from './routes/tasks'
+import { Route as UpdatesRouteImport } from './routes/updates'
+import { Route as AlumniIdRouteImport } from './routes/alumni.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AccountRoute = AccountRouteImport.update({
+  id: '/account',
+  path: '/account',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AnalyticsRoute = AnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CommunitiesRoute = CommunitiesRouteImport.update({
+  id: '/communities',
+  path: '/communities',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DirectoryRoute = DirectoryRouteImport.update({
+  id: '/directory',
+  path: '/directory',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EventsRoute = EventsRouteImport.update({
+  id: '/events',
+  path: '/events',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GiveRoute = GiveRouteImport.update({
+  id: '/give',
+  path: '/give',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JobsRoute = JobsRouteImport.update({
+  id: '/jobs',
+  path: '/jobs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MentorshipRoute = MentorshipRouteImport.update({
+  id: '/mentorship',
+  path: '/mentorship',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MessagesRoute = MessagesRouteImport.update({
+  id: '/messages',
+  path: '/messages',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NetworkRoute = NetworkRouteImport.update({
+  id: '/network',
+  path: '/network',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TasksRoute = TasksRouteImport.update({
+  id: '/tasks',
+  path: '/tasks',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UpdatesRoute = UpdatesRouteImport.update({
+  id: '/updates',
+  path: '/updates',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AlumniIdRoute = AlumniIdRouteImport.update({
+  id: '/alumni/$id',
+  path: '/alumni/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/account': typeof AccountRoute
+  '/analytics': typeof AnalyticsRoute
+  '/auth': typeof AuthRoute
+  '/communities': typeof CommunitiesRoute
+  '/directory': typeof DirectoryRoute
+  '/events': typeof EventsRoute
+  '/give': typeof GiveRoute
+  '/jobs': typeof JobsRoute
+  '/mentorship': typeof MentorshipRoute
+  '/messages': typeof MessagesRoute
+  '/network': typeof NetworkRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/tasks': typeof TasksRoute
+  '/updates': typeof UpdatesRoute
+  '/alumni/$id': typeof AlumniIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/account': typeof AccountRoute
+  '/analytics': typeof AnalyticsRoute
+  '/auth': typeof AuthRoute
+  '/communities': typeof CommunitiesRoute
+  '/directory': typeof DirectoryRoute
+  '/events': typeof EventsRoute
+  '/give': typeof GiveRoute
+  '/jobs': typeof JobsRoute
+  '/mentorship': typeof MentorshipRoute
+  '/messages': typeof MessagesRoute
+  '/network': typeof NetworkRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/tasks': typeof TasksRoute
+  '/updates': typeof UpdatesRoute
+  '/alumni/$id': typeof AlumniIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/account': typeof AccountRoute
+  '/analytics': typeof AnalyticsRoute
+  '/auth': typeof AuthRoute
+  '/communities': typeof CommunitiesRoute
+  '/directory': typeof DirectoryRoute
+  '/events': typeof EventsRoute
+  '/give': typeof GiveRoute
+  '/jobs': typeof JobsRoute
+  '/mentorship': typeof MentorshipRoute
+  '/messages': typeof MessagesRoute
+  '/network': typeof NetworkRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/tasks': typeof TasksRoute
+  '/updates': typeof UpdatesRoute
+  '/alumni/$id': typeof AlumniIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/account'
+    | '/analytics'
+    | '/auth'
+    | '/communities'
+    | '/directory'
+    | '/events'
+    | '/give'
+    | '/jobs'
+    | '/mentorship'
+    | '/messages'
+    | '/network'
+    | '/reset-password'
+    | '/tasks'
+    | '/updates'
+    | '/alumni/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/account'
+    | '/analytics'
+    | '/auth'
+    | '/communities'
+    | '/directory'
+    | '/events'
+    | '/give'
+    | '/jobs'
+    | '/mentorship'
+    | '/messages'
+    | '/network'
+    | '/reset-password'
+    | '/tasks'
+    | '/updates'
+    | '/alumni/$id'
+  id:
+    | '__root__'
+    | '/'
+    | '/account'
+    | '/analytics'
+    | '/auth'
+    | '/communities'
+    | '/directory'
+    | '/events'
+    | '/give'
+    | '/jobs'
+    | '/mentorship'
+    | '/messages'
+    | '/network'
+    | '/reset-password'
+    | '/tasks'
+    | '/updates'
+    | '/alumni/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AccountRoute: typeof AccountRoute
+  AnalyticsRoute: typeof AnalyticsRoute
+  AuthRoute: typeof AuthRoute
+  CommunitiesRoute: typeof CommunitiesRoute
+  DirectoryRoute: typeof DirectoryRoute
+  EventsRoute: typeof EventsRoute
+  GiveRoute: typeof GiveRoute
+  JobsRoute: typeof JobsRoute
+  MentorshipRoute: typeof MentorshipRoute
+  MessagesRoute: typeof MessagesRoute
+  NetworkRoute: typeof NetworkRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
+  TasksRoute: typeof TasksRoute
+  UpdatesRoute: typeof UpdatesRoute
+  AlumniIdRoute: typeof AlumniIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,22 +247,132 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/account': {
+      id: '/account'
+      path: '/account'
+      fullPath: '/account'
+      preLoaderRoute: typeof AccountRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/analytics': {
+      id: '/analytics'
+      path: '/analytics'
+      fullPath: '/analytics'
+      preLoaderRoute: typeof AnalyticsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/communities': {
+      id: '/communities'
+      path: '/communities'
+      fullPath: '/communities'
+      preLoaderRoute: typeof CommunitiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/directory': {
+      id: '/directory'
+      path: '/directory'
+      fullPath: '/directory'
+      preLoaderRoute: typeof DirectoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/events': {
+      id: '/events'
+      path: '/events'
+      fullPath: '/events'
+      preLoaderRoute: typeof EventsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/give': {
+      id: '/give'
+      path: '/give'
+      fullPath: '/give'
+      preLoaderRoute: typeof GiveRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/jobs': {
+      id: '/jobs'
+      path: '/jobs'
+      fullPath: '/jobs'
+      preLoaderRoute: typeof JobsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mentorship': {
+      id: '/mentorship'
+      path: '/mentorship'
+      fullPath: '/mentorship'
+      preLoaderRoute: typeof MentorshipRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/messages': {
+      id: '/messages'
+      path: '/messages'
+      fullPath: '/messages'
+      preLoaderRoute: typeof MessagesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/network': {
+      id: '/network'
+      path: '/network'
+      fullPath: '/network'
+      preLoaderRoute: typeof NetworkRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tasks': {
+      id: '/tasks'
+      path: '/tasks'
+      fullPath: '/tasks'
+      preLoaderRoute: typeof TasksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/updates': {
+      id: '/updates'
+      path: '/updates'
+      fullPath: '/updates'
+      preLoaderRoute: typeof UpdatesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/alumni/$id': {
+      id: '/alumni/$id'
+      path: '/alumni/$id'
+      fullPath: '/alumni/$id'
+      preLoaderRoute: typeof AlumniIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AccountRoute: AccountRoute,
+  AnalyticsRoute: AnalyticsRoute,
+  AuthRoute: AuthRoute,
+  CommunitiesRoute: CommunitiesRoute,
+  DirectoryRoute: DirectoryRoute,
+  EventsRoute: EventsRoute,
+  GiveRoute: GiveRoute,
+  JobsRoute: JobsRoute,
+  MentorshipRoute: MentorshipRoute,
+  MessagesRoute: MessagesRoute,
+  NetworkRoute: NetworkRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
+  TasksRoute: TasksRoute,
+  UpdatesRoute: UpdatesRoute,
+  AlumniIdRoute: AlumniIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

@@ -1,45 +1,159 @@
 import { queryOptions } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-
-const unwrap = <T,>(r: { data: T | null; error: unknown }) => {
-  if (r.error) throw r.error;
-  return r.data as T;
-};
+import {
+  MOCK_PROFILES,
+  MOCK_JOBS,
+  MOCK_MICROTASKS,
+  MOCK_FUNDS,
+  MOCK_UPDATES,
+  MOCK_CONNECTIONS,
+  MOCK_NOTABLE,
+  MOCK_EVENTS,
+  MOCK_MILESTONES,
+  MOCK_SOCIETIES,
+  MOCK_COMPANIES,
+  type Profile,
+  type Job,
+  type Microtask,
+  type Fund,
+  type Update,
+  type Connection,
+  type NotableAlumnus,
+  type AlumniEvent,
+  type Milestone,
+  type Society,
+  type CompanyChapter,
+} from "./mockData";
 
 export const profilesQuery = queryOptions({
   queryKey: ["profiles"],
-  queryFn: async () => unwrap(await supabase.from("profiles").select("*").order("grad_year", { ascending: false })),
+  queryFn: async (): Promise<Profile[]> => {
+    try {
+      const { data, error } = await supabase.from("profiles").select("*").order("grad_year", { ascending: false });
+      if (!error && data && data.length > 0) {
+        return data as unknown as Profile[];
+      }
+    } catch {
+      // Fallback to mock data
+    }
+    return MOCK_PROFILES;
+  },
 });
 
 export const profileQuery = (id: string) =>
   queryOptions({
     queryKey: ["profile", id],
-    queryFn: async () => unwrap(await supabase.from("profiles").select("*").eq("id", id).maybeSingle()),
+    queryFn: async (): Promise<Profile | null> => {
+      try {
+        const { data, error } = await supabase.from("profiles").select("*").eq("id", id).maybeSingle();
+        if (!error && data) {
+          return data as unknown as Profile;
+        }
+      } catch {
+        // Fallback
+      }
+      return MOCK_PROFILES.find((p) => p.id === id) ?? null;
+    },
   });
 
 export const connectionsQuery = queryOptions({
   queryKey: ["connections"],
-  queryFn: async () => unwrap(await supabase.from("connections").select("*")),
+  queryFn: async (): Promise<Connection[]> => {
+    try {
+      const { data, error } = await supabase.from("connections").select("*");
+      if (!error && data && data.length > 0) {
+        return data as unknown as Connection[];
+      }
+    } catch {
+      // Fallback
+    }
+    return MOCK_CONNECTIONS;
+  },
 });
 
 export const jobsQuery = queryOptions({
   queryKey: ["jobs"],
-  queryFn: async () => unwrap(await supabase.from("jobs").select("*").order("created_at", { ascending: false })),
+  queryFn: async (): Promise<Job[]> => {
+    try {
+      const { data, error } = await supabase.from("jobs").select("*").order("created_at", { ascending: false });
+      if (!error && data && data.length > 0) {
+        return data as unknown as Job[];
+      }
+    } catch {
+      // Fallback
+    }
+    return MOCK_JOBS;
+  },
 });
 
 export const tasksQuery = queryOptions({
   queryKey: ["tasks"],
-  queryFn: async () => unwrap(await supabase.from("microtasks").select("*").order("created_at", { ascending: false })),
+  queryFn: async (): Promise<Microtask[]> => {
+    try {
+      const { data, error } = await supabase.from("microtasks").select("*").order("created_at", { ascending: false });
+      if (!error && data && data.length > 0) {
+        return data as unknown as Microtask[];
+      }
+    } catch {
+      // Fallback
+    }
+    return MOCK_MICROTASKS;
+  },
 });
 
 export const fundsQuery = queryOptions({
   queryKey: ["funds"],
-  queryFn: async () => unwrap(await supabase.from("funds").select("*").order("sort")),
+  queryFn: async (): Promise<Fund[]> => {
+    try {
+      const { data, error } = await supabase.from("funds").select("*").order("sort");
+      if (!error && data && data.length > 0) {
+        return data as unknown as Fund[];
+      }
+    } catch {
+      // Fallback
+    }
+    return MOCK_FUNDS;
+  },
 });
 
 export const updatesQuery = queryOptions({
   queryKey: ["updates"],
-  queryFn: async () => unwrap(await supabase.from("updates").select("*").order("created_at", { ascending: false })),
+  queryFn: async (): Promise<Update[]> => {
+    try {
+      const { data, error } = await supabase.from("updates").select("*").order("created_at", { ascending: false });
+      if (!error && data && data.length > 0) {
+        return data as unknown as Update[];
+      }
+    } catch {
+      // Fallback
+    }
+    return MOCK_UPDATES;
+  },
+});
+
+export const notableQuery = queryOptions({
+  queryKey: ["notable-alumni"],
+  queryFn: async (): Promise<NotableAlumnus[]> => MOCK_NOTABLE,
+});
+
+export const eventsQuery = queryOptions({
+  queryKey: ["events"],
+  queryFn: async (): Promise<AlumniEvent[]> => MOCK_EVENTS,
+});
+
+export const milestonesQuery = queryOptions({
+  queryKey: ["milestones"],
+  queryFn: async (): Promise<Milestone[]> => MOCK_MILESTONES,
+});
+
+export const societiesQuery = queryOptions({
+  queryKey: ["societies"],
+  queryFn: async (): Promise<Society[]> => MOCK_SOCIETIES,
+});
+
+export const companiesQuery = queryOptions({
+  queryKey: ["company-chapters"],
+  queryFn: async (): Promise<CompanyChapter[]> => MOCK_COMPANIES,
 });
 
 export const fmtMoney = (n: number, cur = "INR") =>

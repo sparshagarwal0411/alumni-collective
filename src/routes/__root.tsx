@@ -5,14 +5,12 @@ import {
   createRootRouteWithContext,
   useRouter,
   HeadContent,
-  Scripts,
   type ErrorComponentProps,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
-
-import appCss from "../styles.css?url";
+import { useEffect } from "react";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AuthProvider } from "@/lib/auth";
+import { ThemeProvider } from "@/lib/theme";
 import { Header, Footer } from "@/components/site/Chrome";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -77,60 +75,27 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
-  head: () => ({
-    meta: [
-      { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Ashwood College Alumni" },
-      { name: "description", content: "The alumni community of Ashwood College." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
-    ],
-    links: [
-      {
-        rel: "stylesheet",
-        href: appCss,
-      },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
-      { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400&family=Newsreader:ital,opsz,wght@0,6..72,300..500;1,6..72,300..500&display=swap" },
-    ],
-  }),
-  shellComponent: RootShell,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
   errorComponent: ErrorComponent,
 });
-
-function RootShell({ children }: { children: ReactNode }) {
-  return (
-    <html lang="en">
-      <head>
-        <HeadContent />
-      </head>
-      <body>
-        {children}
-        <Scripts />
-      </body>
-    </html>
-  );
-}
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
   return (
     <QueryClientProvider client={queryClient}>
+      <HeadContent />
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <AuthProvider>
-        <a href="#main" className="sr-only focus:not-sr-only">Skip to content</a>
-        <Header />
-        <main id="main"><Outlet /></main>
-        <Footer />
-        <Toaster />
-      </AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <a href="#main" className="sr-only focus:not-sr-only">Skip to content</a>
+          <Header />
+          <main id="main"><Outlet /></main>
+          <Footer />
+          <Toaster />
+        </AuthProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }

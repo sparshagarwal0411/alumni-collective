@@ -1,16 +1,34 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useAuth } from "@/lib/auth";
+import { useTheme } from "@/lib/theme";
 import { COLLEGE } from "./ui";
 import { Newsletter } from "./Newsletter";
 
+function ThemeToggle({ className = "" }: { className?: string }) {
+  const { theme, toggleTheme } = useTheme();
+  const lamp = theme === "dark";
+  return (
+    <button
+      type="button"
+      onClick={toggleTheme}
+      className={`link-u ${className}`}
+      aria-pressed={lamp}
+      aria-label={lamp ? "Switch to daylight" : "Switch to lamp hour"}
+      title={lamp ? "Daylight — cream paper" : "Lamp hour — walnut and gilt"}
+    >
+      {lamp ? "Daylight" : "Lamp hour"}
+    </button>
+  );
+}
+
 const NAV = [
   { to: "/directory", label: "Directory" },
-  { to: "/network", label: "Network" },
+  { to: "/communities", label: "Communities" },
+  { to: "/events", label: "Events" },
   { to: "/jobs", label: "Jobs" },
-  { to: "/tasks", label: "Microtasks" },
+  { to: "/network", label: "Network" },
   { to: "/updates", label: "Updates" },
-  { to: "/analytics", label: "Analytics" },
 ] as const;
 
 export function Header() {
@@ -51,6 +69,7 @@ export function Header() {
           ) : (
             <Link to="/auth" className="link-u">Sign in</Link>
           )}
+          <ThemeToggle />
           <Link to="/give" className="bg-accent px-4 py-2 text-accent-foreground hover:bg-primary">Give</Link>
         </div>
         <button className="eyebrow lg:hidden" aria-expanded={open} aria-controls="mnav" onClick={() => setOpen((o) => !o)}>
@@ -74,6 +93,7 @@ export function Header() {
               <li><Link to="/auth">Sign in</Link></li>
             )}
             <li><Link to="/give" className="text-accent">Give</Link></li>
+            <li><ThemeToggle /></li>
           </ul>
         </nav>
       )}
@@ -95,6 +115,8 @@ export function Footer() {
           <ul className="space-y-2">
             <li className="eyebrow mb-3">Community</li>
             <li><Link to="/directory" className="link-u">Directory</Link></li>
+            <li><Link to="/communities" className="link-u">Societies & companies</Link></li>
+            <li><Link to="/events" className="link-u">Events & milestones</Link></li>
             <li><Link to="/network" className="link-u">Relationship graph</Link></li>
             <li><Link to="/updates" className="link-u">Community updates</Link></li>
           </ul>
@@ -102,6 +124,7 @@ export function Footer() {
             <li className="eyebrow mb-3">Opportunity</li>
             <li><Link to="/jobs" className="link-u">Jobs & referrals</Link></li>
             <li><Link to="/tasks" className="link-u">Microtasks</Link></li>
+            <li><Link to="/analytics" className="link-u">Analytics</Link></li>
             <li><Link to="/give" className="link-u">Make a gift</Link></li>
           </ul>
         </div>

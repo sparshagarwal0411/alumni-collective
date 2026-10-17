@@ -1,8 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import campus from "@/assets/campus.jpg";
+import aanyaPortrait from "@/assets/alumni/aanya-iyer.jpg";
+import arjunPortrait from "@/assets/alumni/arjun-nair.jpg";
+import priyaPortrait from "@/assets/alumni/priya-ramanathan.jpg";
 import { COLLEGE, SampleTag, Section } from "@/components/site/ui";
-import { fmtDate, fmtMoney, fundsQuery, profilesQuery, updatesQuery } from "@/lib/queries";
+import { fmtDate, fmtMoney, fundsQuery, notableQuery, profilesQuery, updatesQuery } from "@/lib/queries";
+
+const PORTRAITS = {
+  "arjun-nair": arjunPortrait,
+  "priya-ramanathan": priyaPortrait,
+  "aanya-iyer": aanyaPortrait,
+} as const;
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -20,9 +29,16 @@ function Home() {
   const profiles = useQuery(profilesQuery);
   const updates = useQuery(updatesQuery);
   const funds = useQuery(fundsQuery);
+  const notable = useQuery(notableQuery);
   const people = profiles.data ?? [];
   const mentors = people.filter((p) => p.open_to_mentor).length;
   const cities = new Set(people.map((p) => p.city).filter(Boolean)).size;
+  const notableCards = (notable.data ?? [])
+    .map((n) => {
+      const p = people.find((row) => row.id === n.profileId);
+      return p ? { ...n, person: p } : null;
+    })
+    .filter((row): row is NonNullable<typeof row> => row !== null);
 
   return (
     <>
@@ -39,7 +55,7 @@ function Home() {
       </Section>
 
       <figure className="mx-auto mt-14 max-w-6xl px-5 md:px-8">
-        <img src={campus} alt="The clock tower and arched cloister of the main quadrangle" width={1600} height={1104} className="aspect-[16/8] w-full object-cover grayscale" />
+        <img src={campus} alt="The clock tower and arched cloister of the main quadrangle" width={1600} height={1104} className="aspect-[16/8] w-full object-cover grayscale dark:opacity-80 dark:sepia-[.35] dark:contrast-[.92]" />
         <figcaption className="mt-3 flex justify-between eyebrow">
           <span>The Main Quadrangle, east cloister</span>
           <span>Fig. 1</span>
@@ -76,6 +92,8 @@ function Home() {
             ["/jobs", "Pass on opportunity", "Post roles, ask for referrals, vouch for juniors."],
             ["/tasks", "Lend a small hand", "Thirty-minute favours: a deck review, a proofread, a test."],
             ["/network", "See the web of it", "An interactive map of who knows whom."],
+            ["/events", "Attend an event", "Reunions, workshops, and campus celebrations on the association calendar."],
+            ["/communities", "Explore communities", "Campus societies and the companies where alumni now work."],
           ].map(([to, t, d], i) => (
             <li key={to} className="group grid grid-cols-[3rem_1fr] items-baseline border-t border-rule py-6 last:border-b">
               <span className="font-mono text-xs text-muted-foreground">0{i + 1}</span>
@@ -122,6 +140,70 @@ function Home() {
           </div>
         </Section>
       )}
+
+      <Section className="mt-28">
+        <div className="flex items-baseline justify-between border-b border-foreground pb-3">
+          <div>
+            <p className="eyebrow">The roll of honour</p>
+            <h2 className="mt-2 text-3xl">Notable alumni</h2>
+          </div>
+          <Link to="/directory" className="link-u text-sm">
+            Full directory
+          </Link>
+        </div>
+        <p className="mt-5 max-w-2xl text-ink-soft">
+          Celebrating graduates making a difference worldwide — in research, industry, public life, and the companies they
+          founded.
+        </p>
+        <div className="mt-12">
+          {notableCards.map(({ person, distinction, accolade, photo }, i) => {
+            const photoRight = i % 2 === 1;
+            return (
+              <Link
+                key={person.id}
+                to="/alumni/$id"
+                params={{ id: person.id }}
+                className={`group flex flex-col items-center gap-8 border-t border-rule py-12 last:border-b md:flex-row md:gap-16 ${
+                  photoRight ? "md:flex-row-reverse" : ""
+                }`}
+              >
+                {photo && (
+                  <figure className="w-full shrink-0 md:w-[46%]">
+                    <img
+                      src={PORTRAITS[photo]}
+                      alt={`Portrait of ${person.full_name}`}
+                      width={768}
+                      height={1024}
+                      className="aspect-[4/5] w-full object-cover object-top grayscale transition duration-300 group-hover:grayscale-0 dark:opacity-90 dark:sepia-[.2] dark:group-hover:sepia-0"
+                    />
+                    <figcaption className="mt-3 flex justify-between eyebrow">
+                      <span>{person.full_name}</span>
+                      <span>Fig. {i + 2}</span>
+                    </figcaption>
+                  </figure>
+                )}
+                <div className={`w-full md:flex-1 ${photoRight ? "md:text-right md:[&>*]:ml-auto" : ""}`}>
+                  <p className="eyebrow">
+                    {distinction}
+                    <SampleTag show={person.is_sample} />
+                  </p>
+                  <h3 className="mt-3 font-display text-4xl leading-tight group-hover:text-accent md:text-5xl">
+                    {person.full_name}
+                  </h3>
+                  <p className="mt-3 text-ink-soft">
+                    {person.role_title} · {person.company}
+                  </p>
+                  <p className="mt-1 font-mono text-[11px] uppercase tracking-wider text-accent">
+                    Class of {person.grad_year}
+                  </p>
+                  <p className="mt-5 max-w-md font-serif text-lg leading-relaxed text-ink-soft">{accolade}</p>
+                  <span className="mt-6 inline-block text-sm text-foreground">Read the register →</span>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      </Section>
     </>
   );
 }
