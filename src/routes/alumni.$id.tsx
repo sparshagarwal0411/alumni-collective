@@ -40,7 +40,7 @@ function ProfilePage() {
 
   const p = profile.data;
   const userTasks = (tasks.data ?? []).filter((t) => t.posted_by === id || t.claimed_by === id);
-  const portrait = p ? getAlumniPortrait(p.id) : null;
+  const portrait = p ? getAlumniPortrait(p.id, p.full_name) : null;
 
   if (profile.isLoading) {
     return <Loading label="Consulting the college register" />;
@@ -94,20 +94,24 @@ function ProfilePage() {
       </Section>
 
       <PageHead
-        eyebrow={`${p.department ?? "Alumni"} · Class of ${p.grad_year ?? "Unknown"}`}
-        title={
-          <span className="flex flex-wrap items-center gap-4">
-            {portrait && (
+        index={
+          portrait ? (
+            <div className="overflow-hidden rounded-sm border border-rule bg-paper shadow-sm">
               <img
                 src={portrait}
                 alt={p.full_name}
-                className="h-16 w-16 md:h-20 md:w-20 rounded-sm border border-rule object-cover object-top shadow-xs"
+                className="aspect-square w-24 object-cover object-top md:h-32 md:w-32"
               />
-            )}
-            <span className="flex flex-wrap items-baseline gap-3">
-              {p.full_name}
-              <SampleTag show={p.is_sample} />
-            </span>
+            </div>
+          ) : (
+            <Monogram name={p.full_name} size="lg" />
+          )
+        }
+        eyebrow={`${p.department ?? "Alumni"} · Class of ${p.grad_year ?? "Unknown"}`}
+        title={
+          <span className="flex flex-wrap items-baseline gap-3">
+            <span>{p.full_name}</span>
+            <SampleTag show={p.is_sample} />
           </span>
         }
         lede={
