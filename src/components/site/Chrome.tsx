@@ -17,7 +17,7 @@ function ThemeToggle({ className = "" }: { className?: string }) {
       aria-label={lamp ? "Switch to daylight" : "Switch to lamp hour"}
       title={lamp ? "Daylight — cream paper" : "Lamp hour — walnut and gilt"}
     >
-      {lamp ? "Daylight" : "Lamp hour"}
+      {lamp ? "Daylight" : "Lamp Hour"}
     </button>
   );
 }

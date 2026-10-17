@@ -1,17 +1,29 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { Building2 } from "lucide-react";
 import campus from "@/assets/campus.jpg";
 import aanyaPortrait from "@/assets/alumni/aanya-iyer.jpg";
 import arjunPortrait from "@/assets/alumni/arjun-nair.jpg";
 import priyaPortrait from "@/assets/alumni/priya-ramanathan.jpg";
 import { COLLEGE, SampleTag, Section } from "@/components/site/ui";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { fmtDate, fmtMoney, fundsQuery, notableQuery, profilesQuery, updatesQuery } from "@/lib/queries";
+import { MOCK_PROFILES } from "@/lib/mockData";
 
 const PORTRAITS = {
   "arjun-nair": arjunPortrait,
   "priya-ramanathan": priyaPortrait,
   "aanya-iyer": aanyaPortrait,
 } as const;
+
+const recruiterPartners = [
+  { name: "Anthropic", mark: "A", color: "#c15f3c", focus: "Frontier computing", alumni: "Systems, research & product" },
+  { name: "Google DeepMind", mark: "G", color: "#4285f4", focus: "Applied intelligence", alumni: "Machine learning & science" },
+  { name: "Stripe", mark: "S", color: "#635bff", focus: "Financial infrastructure", alumni: "Product, design & engineering" },
+  { name: "Apple", mark: "", color: "#8b8b8b", focus: "Human technology", alumni: "Hardware, design & software" },
+  { name: "Microsoft", mark: "⊞", color: "#00a4ef", focus: "Cloud & platforms", alumni: "Engineering & enterprise" },
+  { name: "Adobe", mark: "A", color: "#ed2224", focus: "Creative technology", alumni: "Design, product & data" },
+] as const;
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -35,7 +47,7 @@ function Home() {
   const cities = new Set(people.map((p) => p.city).filter(Boolean)).size;
   const notableCards = (notable.data ?? [])
     .map((n) => {
-      const p = people.find((row) => row.id === n.profileId);
+      const p = people.find((row) => row.id === n.profileId) ?? MOCK_PROFILES.find((row) => row.id === n.profileId);
       return p ? { ...n, person: p } : null;
     })
     .filter((row): row is NonNullable<typeof row> => row !== null);
@@ -107,6 +119,43 @@ function Home() {
       </Section>
 
       <Section className="mt-28">
+        <div className="flex flex-wrap items-end justify-between gap-4 border-b border-foreground pb-3">
+          <div>
+            <p className="eyebrow">The hiring register</p>
+            <h2 className="mt-2 text-3xl">Past recruiters of our alumni</h2>
+          </div>
+          <p className="max-w-sm text-right text-sm text-ink-soft">Where Ashwood graduates have built what comes next.</p>
+        </div>
+        <div className="mt-8 px-10 md:px-12">
+          <Carousel opts={{ align: "start", loop: true }} aria-label="Past recruiters of Ashwood alumni">
+            <CarouselContent className="-ml-3">
+              {recruiterPartners.map((company) => (
+                <CarouselItem key={company.name} className="basis-full pl-3 sm:basis-1/2 md:basis-1/3">
+                  <article className="h-full border border-rule bg-paper p-5 transition-colors hover:border-accent">
+                    <div className="flex items-start justify-between gap-4">
+                      <div
+                        className="flex h-12 w-12 items-center justify-center rounded-sm text-2xl font-semibold"
+                        style={{ backgroundColor: `${company.color}18`, color: company.color }}
+                        aria-hidden="true"
+                      >
+                        {company.mark}
+                      </div>
+                      <Building2 className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+                    </div>
+                    <h3 className="mt-8 font-display text-2xl">{company.name}</h3>
+                    <p className="mt-1 text-sm text-accent">{company.focus}</p>
+                    <p className="mt-5 border-t border-rule pt-3 text-xs leading-relaxed text-ink-soft">{company.alumni}</p>
+                  </article>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselPrevious className="-left-10 md:-left-12" aria-label="Previous recruiter" />
+            <CarouselNext className="-right-10 md:-right-12" aria-label="Next recruiter" />
+          </Carousel>
+        </div>
+      </Section>
+
+      <Section className="mt-28">
         <div className="flex items-baseline justify-between border-b border-foreground pb-3">
           <h2 className="text-3xl">From the quad</h2>
           <Link to="/updates" className="link-u text-sm">All updates</Link>
@@ -158,6 +207,7 @@ function Home() {
         <div className="mt-12">
           {notableCards.map(({ person, distinction, accolade, photo }, i) => {
             const photoRight = i % 2 === 1;
+            const portrait = photo ? PORTRAITS[photo] : undefined;
             return (
               <Link
                 key={person.id}
@@ -167,10 +217,10 @@ function Home() {
                   photoRight ? "md:flex-row-reverse" : ""
                 }`}
               >
-                {photo && (
+                {portrait ? (
                   <figure className="w-full shrink-0 md:w-[46%]">
                     <img
-                      src={PORTRAITS[photo]}
+                      src={portrait}
                       alt={`Portrait of ${person.full_name}`}
                       width={768}
                       height={1024}
@@ -181,6 +231,10 @@ function Home() {
                       <span>Fig. {i + 2}</span>
                     </figcaption>
                   </figure>
+                ) : (
+                  <div className="flex aspect-[4/5] w-full shrink-0 items-center justify-center bg-paper text-5xl text-accent md:w-[46%]" aria-label={`Portrait unavailable for ${person.full_name}`}>
+                    {person.full_name.charAt(0)}
+                  </div>
                 )}
                 <div className={`w-full md:flex-1 ${photoRight ? "md:text-right md:[&>*]:ml-auto" : ""}`}>
                   <p className="eyebrow">
