@@ -44,7 +44,7 @@ function GivePage() {
   const finalAmount = customAmount ? Number(customAmount) : selectedAmount;
 
   return (
-    <div className="space-y-12 pb-24">
+    <div className="space-y-12 pb-12">
       <PageHead
         index="IX."
         eyebrow="Stewardship"
@@ -58,8 +58,7 @@ function GivePage() {
             <div className="md:col-span-7">
               <p className="eyebrow">Giving · {funds[0].name}<SampleTag show={funds[0].is_sample} /></p>
               <p className="mt-4 font-display text-3xl leading-snug md:text-4xl">
-                “I was the first in my family to see the inside of a lecture hall. Someone I never met paid for it.”
-              </p>
+“I was the <span className="bg-[#a0534d] text-white px-1.5 py-0.5 rounded">first in my family</span> to see the inside of a lecture hall. <span className="bg-[#a0534d] text-white px-1.5 py-0.5 rounded">Someone I never met</span> paid for it.”              </p>
               <p className="mt-4 text-sm text-muted-foreground">— Scholarship recipient, Class of 2019 (illustrative)</p>
             </div>
             <div className="md:col-span-4 md:col-start-9 md:self-center">

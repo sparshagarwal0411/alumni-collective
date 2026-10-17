@@ -179,3 +179,49 @@
     color: var(--muted-foreground);
   }
 }
+
+/* Leaflet Custom Marker & Popup Styles for AlmaConnect Style Map */
+.alumni-custom-marker {
+  background: transparent !important;
+  border: none !important;
+}
+
+.alumni-marker-circle:hover {
+  transform: scale(1.14);
+  box-shadow: 0 4px 14px rgba(224, 49, 49, 0.6) !important;
+}
+
+.alumni-marker-circle.is-selected {
+  transform: scale(1.2);
+  animation: marker-pulse 1.8s infinite;
+}
+
+@keyframes marker-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(224, 49, 49, 0.7), 0 2px 6px rgba(0, 0, 0, 0.2);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(224, 49, 49, 0), 0 2px 6px rgba(0, 0, 0, 0.2);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(224, 49, 49, 0), 0 2px 6px rgba(0, 0, 0, 0.2);
+  }
+}
+
+.alumni-clean-popup .leaflet-popup-content-wrapper {
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  padding: 4px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.alumni-clean-popup .leaflet-popup-content {
+  margin: 10px 12px;
+  line-height: 1.4;
+}
+
+.alumni-clean-popup .leaflet-popup-tip {
+  background: #ffffff;
+}
+
