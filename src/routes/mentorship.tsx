@@ -108,7 +108,7 @@ function MentorshipPage() {
   // If the user requested mentorship for a specific alumnus:
   // Show ONLY this alumnus and the consultation form directly at first glance, NO other profiles!
   if (focusedMentor) {
-    const portrait = getAlumniPortrait(focusedMentor.id);
+    const portrait = getAlumniPortrait(focusedMentor.id, focusedMentor.full_name);
 
     return (
       <>
@@ -313,7 +313,7 @@ function MentorshipPage() {
             <div className="divide-y divide-rule">
               {myRequests.map((req) => {
                 const mentor = people.find((p) => p.id === req.mentor);
-                const mentorPortrait = mentor ? getAlumniPortrait(mentor.id) : null;
+                const mentorPortrait = mentor ? getAlumniPortrait(mentor.id, mentor.full_name) : null;
 
                 return (
                   <div key={req.id} className="py-3 flex flex-wrap items-center justify-between gap-4">
@@ -402,7 +402,7 @@ function MentorshipPage() {
 
             <div className="grid gap-6 md:grid-cols-2">
               {filteredMentors.map((mentor) => {
-                const portrait = getAlumniPortrait(mentor.id);
+                const portrait = getAlumniPortrait(mentor.id, mentor.full_name);
 
                 return (
                   <article
@@ -485,9 +485,9 @@ function MentorshipPage() {
             <div className="w-full max-w-lg border border-rule bg-background p-6 shadow-xl animate-in zoom-in-95 duration-200">
               <div className="flex items-start justify-between border-b border-rule pb-3">
                 <div className="flex items-center gap-3">
-                  {getAlumniPortrait(selectedModalMentor.id) ? (
+                  {getAlumniPortrait(selectedModalMentor.id, selectedModalMentor.full_name) ? (
                     <img
-                      src={getAlumniPortrait(selectedModalMentor.id)!}
+                      src={getAlumniPortrait(selectedModalMentor.id, selectedModalMentor.full_name)}
                       alt={selectedModalMentor.full_name}
                       className="h-10 w-10 rounded-sm border border-rule object-cover object-top"
                     />

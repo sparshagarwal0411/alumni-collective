@@ -77,9 +77,9 @@ function Directory() {
               {rows.map((p) => (
                 <li key={p.id} className="border-b border-rule">
                   <Link to="/alumni/$id" params={{ id: p.id }} className="group grid grid-cols-[auto_minmax(0,1fr)] items-center gap-4 py-5 md:grid-cols-[auto_minmax(0,3fr)_minmax(0,2fr)_6rem] md:gap-6">
-                    {getAlumniPortrait(p.id) ? (
+                    {getAlumniPortrait(p.id, p.full_name) ? (
                       <img
-                        src={getAlumniPortrait(p.id)!}
+                        src={getAlumniPortrait(p.id, p.full_name)}
                         alt={p.full_name}
                         className="h-12 w-12 rounded-sm border border-rule object-cover object-top shadow-xs"
                       />

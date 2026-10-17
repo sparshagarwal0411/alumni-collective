@@ -128,7 +128,7 @@ function Home() {
         </div>
       </Section> */}
 
-      {/* <Section className="mt-28">
+      <Section className="mt-28">
         <div className="flex flex-wrap items-end justify-between gap-4 border-b border-foreground pb-3">
           <div>
             <p className="eyebrow">The hiring register</p>
@@ -157,7 +157,7 @@ function Home() {
             <CarouselNext className="-right-10 md:-right-12" aria-label="Next recruiter" />
           </Carousel>
         </div>
-      </Section> */}
+      </Section>
 
       <Section className="mt-28">
         <div className="flex items-baseline justify-between border-b border-foreground pb-3">
