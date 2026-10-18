@@ -42,6 +42,63 @@ import {
   Settings,
 } from "lucide-react";
 import { MicrotasksManager } from "@/components/microtasks/MicrotasksManager";
+import {
+  getStoredMessages,
+  sendUnifiedMessage,
+  CHAT_UPDATED_EVENT,
+  type UnifiedMessage,
+} from "@/lib/chatStore";
+
+export const SCOUT_STUDENTS = [
+  {
+    id: "student-dev-sharma",
+    fullName: "Dev Sharma",
+    gradYear: 2025,
+    department: "Computer Science & Engineering",
+    gpa: "3.92 / 4.0",
+    headline: "Undergraduate Fellow · Linux Kernels, Distributed Systems, Rust",
+    skills: ["Rust", "Linux Kernels", "Distributed Systems", "CUDA", "eBPF", "PostgreSQL"],
+    thesis: "Zero-copy lock-free ring buffers for multi-tenant GPU kernel dispatch",
+    projects: 4,
+    seekingRole: "Distributed Systems & Infrastructure Engineer",
+  },
+  {
+    id: "student-aarav-patel",
+    fullName: "Aarav Patel",
+    gradYear: 2025,
+    department: "Electrical & Computer Systems",
+    gpa: "3.88 / 4.0",
+    headline: "Robotics Controls & Low-Latency Firmware Developer",
+    skills: ["Embedded C++", "Control Systems", "ROS2", "Kinematics", "Hardware Design"],
+    thesis: "Closed-loop microsecond motor driver telemetry for sub-millimeter surgical robotics",
+    projects: 3,
+    seekingRole: "Robotics Controls & Hardware Engineer",
+  },
+  {
+    id: "student-ananya-sen",
+    fullName: "Ananya Sen",
+    gradYear: 2026,
+    department: "Data Science & Statistics",
+    gpa: "3.95 / 4.0",
+    headline: "Applied Machine Learning & Evaluation Researcher",
+    skills: ["PyTorch", "Python", "LLM Evaluation", "C++20", "Distributed Training"],
+    thesis: "Empirical benchmarking of hallucination rates in speculative decoding architectures",
+    projects: 5,
+    seekingRole: "ML Infrastructure & Evaluation Fellow",
+  },
+  {
+    id: "student-rohan-varma",
+    fullName: "Rohan Varma",
+    gradYear: 2026,
+    department: "Design & Human-Computer Interaction",
+    gpa: "3.85 / 4.0",
+    headline: "Product Systems Architect & Accessible Interface Designer",
+    skills: ["TypeScript", "Design Systems", "Figma", "Interaction Design", "Next.js"],
+    thesis: "Information density and spatial affordances in collaborative knowledge graphs",
+    projects: 4,
+    seekingRole: "Product Designer & Frontend Architect",
+  },
+];
 
 export const Route = createFileRoute("/dashboard")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -156,13 +213,23 @@ export function UnifiedDashboardPage() {
   const activePersona: AppRole = currentRole || "student";
 
   // Dashboard active section tab
-  const dashboardTabs = ["overview", "messages", "seeking", "posting", "mentorship", "microtasks", "folio", "account"] as const;
+  const dashboardTabs = [
+    "overview",
+    "messages",
+    "seeking",
+    "posting",
+    "mentorship",
+    "microtasks",
+    "folio",
+    "talent_scout",
+    "account",
+  ] as const;
   type DashboardTab = (typeof dashboardTabs)[number];
   const requestedDashboardTab = dashboardTabs.includes(requestedTab as DashboardTab)
     ? (requestedTab as DashboardTab)
     : undefined;
   const [activeTab, setActiveTab] = useState<DashboardTab>(
-    requestedDashboardTab || (currentRole === "student" ? "folio" : "overview")
+    requestedDashboardTab || (currentRole === "student" ? "overview" : "overview")
   );
   const selectTab = (tab: DashboardTab) => {
     setActiveTab(tab);
@@ -183,52 +250,69 @@ export function UnifiedDashboardPage() {
     return () => window.removeEventListener("student_profile_updated", handleUpdate);
   }, []);
 
-  // Messaging state — seeded with mock, then replaced by real Supabase data
-  const [messages, setMessages] = useState<Message[]>(MOCK_MESSAGES);
+  // Messaging state — unified real-time chat store with cross-persona sync
+  const [messages, setMessages] = useState<UnifiedMessage[]>(getStoredMessages());
   const [activeChatPartnerId, setActiveChatPartnerId] = useState<string>("p-arjun-nair");
   const [replyText, setReplyText] = useState("");
   const [isAiDrafting, setIsAiDrafting] = useState(false);
+
+  useEffect(() => {
+    const handleChatUpdate = () => {
+      setMessages(getStoredMessages());
+    };
+    window.addEventListener(CHAT_UPDATED_EVENT, handleChatUpdate);
+    return () => window.removeEventListener(CHAT_UPDATED_EVENT, handleChatUpdate);
+  }, []);
 
   // Mentorship state — seeded with mock, then replaced by real Supabase data
   const [mentorshipRequests, setMentorshipRequests] = useState<MentorshipRequest[]>(MOCK_MENTORSHIP_REQUESTS);
   const [openToMentorState, setOpenToMentorState] = useState(true);
 
-  // ── Real-time: fetch + subscribe to messages ───────────────────────────────
-  const fetchMessages = useCallback(async () => {
-    if (!user) return;
-    const userId = user.id;
-    const { data, error } = await supabase
-      .from("messages")
-      .select("*")
-      .or(`sender.eq.${userId},recipient.eq.${userId}`)
-      .order("created_at", { ascending: true });
-    if (!error && data && data.length > 0) {
-      // Normalize: replace the DB user-id with the "current-user" sentinel used by the UI
-      const normalized: Message[] = data.map((m) => ({
-        id: m.id,
-        sender: m.sender === userId ? "current-user" : m.sender,
-        recipient: m.recipient === userId ? "current-user" : m.recipient,
-        body: m.body,
-        created_at: m.created_at,
-        is_ai_drafted: false,
-      }));
-      setMessages(normalized);
+  // Role-specific available tabs:
+  // STUDENT: Overview, Job Seeking & Referrals, Microtasks, Mentorship, Folio & Resume, Messages, Account
+  // ALUMNI: Recruiter Command, Recruiter Hub & Post Jobs, Commission Microtasks, Mentorship Requests, Student Talent Scout, Messages, Account
+  // FACULTY: Academic Overview, Lab Grants & Postings, Academic Microtasks, Thesis Advisory, Student Scholars, Messages, Account
+  const roleTabs = useMemo(() => {
+    if (activePersona === "student") {
+      return [
+        { id: "overview" as DashboardTab, label: "Student Overview", icon: Target },
+        { id: "seeking" as DashboardTab, label: "Job Seeking & Referrals", icon: Search },
+        { id: "microtasks" as DashboardTab, label: "Microtasks & Deliverables", icon: Award },
+        { id: "mentorship" as DashboardTab, label: "Alumni Mentors & Office Hours", icon: UserCheck },
+        { id: "folio" as DashboardTab, label: "Student Dossier & Resume", icon: FileText },
+        { id: "messages" as DashboardTab, label: `Direct Messages (${messages.length})`, icon: MessageSquare },
+        { id: "account" as DashboardTab, label: "Account", icon: Settings },
+      ];
     }
-  }, [user]);
+    if (activePersona === "alumni") {
+      return [
+        { id: "overview" as DashboardTab, label: "Recruiter Command & Pipeline", icon: Target },
+        { id: "posting" as DashboardTab, label: "Recruiter Hub & Post Jobs", icon: Plus },
+        { id: "microtasks" as DashboardTab, label: "Commission Work & Reviews", icon: Award },
+        { id: "mentorship" as DashboardTab, label: "Mentorship Requests", icon: UserCheck },
+        { id: "talent_scout" as DashboardTab, label: "Student Talent & Folios", icon: GraduationCap },
+        { id: "messages" as DashboardTab, label: `Direct Messages (${messages.length})`, icon: MessageSquare },
+        { id: "account" as DashboardTab, label: "Account", icon: Settings },
+      ];
+    }
+    return [
+      { id: "overview" as DashboardTab, label: "Academic Command Center", icon: Target },
+      { id: "posting" as DashboardTab, label: "Research Lab Postings & Grants", icon: Plus },
+      { id: "microtasks" as DashboardTab, label: "Academic Microtasks & Audits", icon: Award },
+      { id: "mentorship" as DashboardTab, label: "Thesis Advisory & Office Hours", icon: UserCheck },
+      { id: "talent_scout" as DashboardTab, label: "Student Research Scholars", icon: GraduationCap },
+      { id: "messages" as DashboardTab, label: `Direct Messages (${messages.length})`, icon: MessageSquare },
+      { id: "account" as DashboardTab, label: "Account", icon: Settings },
+    ];
+  }, [activePersona, messages.length]);
 
+  // Ensure activeTab is valid for current role
   useEffect(() => {
-    void fetchMessages();
-    if (!user) return;
-    const channel = supabase
-      .channel("rt-messages")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "messages" },
-        () => { void fetchMessages(); }
-      )
-      .subscribe();
-    return () => { void supabase.removeChannel(channel); };
-  }, [user, fetchMessages]);
+    const validIds = roleTabs.map((t) => t.id);
+    if (!validIds.includes(activeTab)) {
+      setActiveTab("overview");
+    }
+  }, [activePersona, roleTabs, activeTab]);
 
   // ── Real-time: fetch + subscribe to mentorship_requests ───────────────────
   const fetchMentorship = useCallback(async () => {
@@ -346,30 +430,35 @@ export function UnifiedDashboardPage() {
     }).sort((a, b) => b.matchScore - a.matchScore);
   }, [allJobs, studentSkillSet]);
 
+  const myId = user?.id || (activePersona === "student" ? "student-user" : "current-user");
+  const myIds = useMemo(() => new Set<string>([myId, "current-user", "student-user"]), [myId]);
+
   // Chat partners
   const chatPartners = useMemo(() => {
     const partnerIds = new Set<string>();
     for (const m of messages) {
-      if (m.sender !== "current-user") partnerIds.add(m.sender);
-      if (m.recipient !== "current-user") partnerIds.add(m.recipient);
+      if (!myIds.has(m.sender)) partnerIds.add(m.sender);
+      if (!myIds.has(m.recipient)) partnerIds.add(m.recipient);
     }
     // Also include top alumni mentors
-    people.slice(0, 5).forEach((p) => partnerIds.add(p.id));
+    people.slice(0, 6).forEach((p) => partnerIds.add(p.id));
     return people.filter((p) => partnerIds.has(p.id));
-  }, [messages, people]);
+  }, [messages, people, myIds]);
 
   const activePartner = useMemo(() => {
-    return people.find((p) => p.id === activeChatPartnerId) || people[0] || null;
-  }, [people, activeChatPartnerId]);
+    return people.find((p) => p.id === activeChatPartnerId) || chatPartners[0] || people[0] || null;
+  }, [people, activeChatPartnerId, chatPartners]);
 
   const activeConversation = useMemo(() => {
     if (!activePartner) return [];
     return messages.filter(
       (m) =>
+        (m.sender === activePartner.id && myIds.has(m.recipient)) ||
+        (myIds.has(m.sender) && m.recipient === activePartner.id) ||
         (m.sender === activePartner.id && m.recipient === "current-user") ||
         (m.sender === "current-user" && m.recipient === activePartner.id)
     );
-  }, [messages, activePartner]);
+  }, [messages, activePartner, myIds]);
 
   // Handlers
   const handleSendMessage = async (e: React.FormEvent) => {
@@ -378,32 +467,49 @@ export function UnifiedDashboardPage() {
     const body = replyText.trim();
     setReplyText("");
 
-    // Optimistic update
-    const optimistic: Message = {
-      id: `msg-${Date.now()}`,
-      sender: "current-user",
-      recipient: activePartner.id,
-      body,
-      created_at: new Date().toISOString(),
-      is_ai_drafted: false,
-    };
-    setMessages((prev) => [...prev, optimistic]);
+    const myName =
+      user?.user_metadata?.full_name ||
+      (activePersona === "student"
+        ? studentProfile.fullName
+        : activePersona === "alumni"
+          ? "Dr. Arjun Nair (Alumni)"
+          : "Prof. Gayatri Sen (Faculty)");
 
-    // Persist to Supabase if authenticated (real user, not demo)
-    if (user && !user.id.startsWith("demo-")) {
-      const { error } = await supabase.from("messages").insert({
-        sender: user.id,
-        recipient: activePartner.id,
-        body,
-      });
-      if (error) {
-        toast.error("Message failed to save — check connection.");
-      } else {
-        toast.success(`Message dispatched to ${activePartner.full_name}.`);
-      }
-    } else {
-      toast.success(`Message dispatched to ${activePartner.full_name}.`);
-    }
+    await sendUnifiedMessage({
+      senderId: myId,
+      senderName: myName,
+      recipientId: activePartner.id,
+      recipientName: activePartner.full_name,
+      body,
+      simulateAutoReply: true,
+    });
+
+    toast.success(`Message dispatched to ${activePartner.full_name}.`);
+  };
+
+  const handleVouchCandidate = (referralId: string) => {
+    const updated = submittedReferrals.map((r) =>
+      r.id === referralId ? { ...r, status: "Vouched & Forwarded" as const } : r
+    );
+    setSubmittedReferrals(updated);
+    saveSubmittedReferrals(updated);
+    toast.success("✓ Candidate vouched and dossier forwarded to recruiting team!");
+  };
+
+  const handleScheduleInterview = (referralId: string) => {
+    const updated = submittedReferrals.map((r) =>
+      r.id === referralId ? { ...r, status: "Interview Scheduled" as const } : r
+    );
+    setSubmittedReferrals(updated);
+    saveSubmittedReferrals(updated);
+    toast.success("✓ Candidate marked for interview screening.");
+  };
+
+  const handleDeclineReferral = (referralId: string) => {
+    const updated = submittedReferrals.filter((r) => r.id !== referralId);
+    setSubmittedReferrals(updated);
+    saveSubmittedReferrals(updated);
+    toast.info("Candidate application archived with constructive feedback.");
   };
 
   const handleAiDraft = () => {
@@ -647,323 +753,515 @@ export function UnifiedDashboardPage() {
           </div>
         </div> */}
 
-        {/* Navigation Tabs */}
+        {/* Dynamic Role-Based Navigation Tabs */}
         <div className="border-b border-rule">
           <nav className="flex flex-wrap items-center gap-1 sm:gap-2 font-mono text-xs">
-            <button
-              type="button"
-              onClick={() => selectTab("overview")}
-              className={`px-4 py-2.5 border-b-2 font-semibold transition-colors cursor-pointer ${activeTab === "overview"
-                ? "border-accent text-accent bg-accent/5"
-                : "border-transparent text-muted-foreground hover:text-foreground hover:border-rule"
-                }`}
-            >
-              Overview & Feeds
-            </button>
-            <button
-              type="button"
-              onClick={() => selectTab("messages")}
-              className={`flex items-center gap-1.5 px-4 py-2.5 border-b-2 font-semibold transition-colors cursor-pointer ${activeTab === "messages"
-                ? "border-accent text-accent bg-accent/5"
-                : "border-transparent text-muted-foreground hover:text-foreground hover:border-rule"
-                }`}
-            >
-              <MessageSquare className="h-3.5 w-3.5" />
-              Manage Messages ({messages.length})
-            </button>
-            <button
-              type="button"
-              onClick={() => selectTab("seeking")}
-              className={`flex items-center gap-1.5 px-4 py-2.5 border-b-2 font-semibold transition-colors cursor-pointer ${activeTab === "seeking"
-                ? "border-accent text-accent bg-accent/5"
-                : "border-transparent text-muted-foreground hover:text-foreground hover:border-rule"
-                }`}
-            >
-              <Search className="h-3.5 w-3.5" />
-              Job Seeking & Referrals
-            </button>
-            <button
-              type="button"
-              onClick={() => selectTab("posting")}
-              className={`flex items-center gap-1.5 px-4 py-2.5 border-b-2 font-semibold transition-colors cursor-pointer ${activeTab === "posting"
-                ? "border-accent text-accent bg-accent/5"
-                : "border-transparent text-muted-foreground hover:text-foreground hover:border-rule"
-                }`}
-            >
-              <Plus className="h-3.5 w-3.5" />
-              Opportunity Posting & Recruiter Hub
-            </button>
-            <button
-              type="button"
-              onClick={() => selectTab("mentorship")}
-              className={`flex items-center gap-1.5 px-4 py-2.5 border-b-2 font-semibold transition-colors cursor-pointer ${activeTab === "mentorship"
-                ? "border-accent text-accent bg-accent/5"
-                : "border-transparent text-muted-foreground hover:text-foreground hover:border-rule"
-                }`}
-            >
-              <UserCheck className="h-3.5 w-3.5" />
-              Mentorship & Office Hours
-            </button>
-            <button
-              type="button"
-              onClick={() => selectTab("microtasks")}
-              className={`flex items-center gap-1.5 px-4 py-2.5 border-b-2 font-semibold transition-colors cursor-pointer ${activeTab === "microtasks"
-                ? "border-accent text-accent bg-accent/5"
-                : "border-transparent text-muted-foreground hover:text-foreground hover:border-rule"
-                }`}
-            >
-              <Award className="h-3.5 w-3.5" />
-              Microtasks & Proof of Work
-            </button>
-            <button
-              type="button"
-              onClick={() => selectTab("folio")}
-              className={`flex items-center gap-1.5 px-4 py-2.5 border-b-2 font-semibold transition-colors cursor-pointer ${activeTab === "folio"
-                ? "border-accent text-accent bg-accent/5"
-                : "border-transparent text-muted-foreground hover:text-foreground hover:border-rule"
-                }`}
-            >
-              <FileText className="h-3.5 w-3.5" />
-              Dossier & Credentials
-            </button>
-            <button
-              type="button"
-              onClick={() => selectTab("account")}
-              className={`flex items-center gap-1.5 px-4 py-2.5 border-b-2 font-semibold transition-colors cursor-pointer ${activeTab === "account"
-                ? "border-accent text-accent bg-accent/5"
-                : "border-transparent text-muted-foreground hover:text-foreground hover:border-rule"
-                }`}
-            >
-              <Settings className="h-3.5 w-3.5" />
-              Account
-            </button>
+            {roleTabs.map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => selectTab(tab.id)}
+                  className={`flex items-center gap-1.5 px-4 py-2.5 border-b-2 font-semibold transition-colors cursor-pointer ${isActive
+                    ? "border-accent text-accent bg-accent/5"
+                    : "border-transparent text-muted-foreground hover:text-foreground hover:border-rule"
+                    }`}
+                >
+                  <Icon className="h-3.5 w-3.5" />
+                  {tab.label}
+                </button>
+              );
+            })}
           </nav>
         </div>
 
         {/* TAB 1: OVERVIEW & COMMAND FEED */}
         {activeTab === "overview" && (
-          <div className="space-y-0 animate-in fade-in duration-200">
-            {/* Quick Actions Bar */}
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-1">
-              {/* <button
-                type="button"
-                onClick={() => setIsPostModalOpen(true)}
-                className="p-4 border border-accent bg-accent/10 hover:bg-accent hover:text-accent-foreground text-left transition-colors group cursor-pointer"
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <span className="eyebrow text-accent group-hover:text-accent-foreground">Quick Action</span>
-                  <Plus className="h-4 w-4" />
-                </div>
-                <h4 className="font-display text-lg font-bold">Post New Opportunity</h4>
-                <p className="text-xs text-ink-soft group-hover:text-accent-foreground/80 mt-1">
-                  Publish a job, research assistantship, or fellowship to the register.
-                </p>
-              </button> */}
-
-              {/* <button
-                type="button"
-                onClick={() => selectTab("messages")}
-                className="p-4 border border-rule bg-paper hover:border-foreground text-left transition-colors group cursor-pointer"
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <span className="eyebrow">Direct Outreach</span>
-                  <Send className="h-4 w-4 text-muted-foreground group-hover:text-foreground" />
-                </div>
-                <h4 className="font-display text-lg font-bold">Send Message to Mentor</h4>
-                <p className="text-xs text-ink-soft mt-1">
-                  Draft a contextual message with one-click AI collegiate intro.
-                </p>
-              </button> */}
-
-              {/* <button
-                type="button"
-                onClick={() => selectTab("seeking")}
-                className="p-4 border border-rule bg-paper hover:border-foreground text-left transition-colors group cursor-pointer"
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <span className="eyebrow">Career Pipeline</span>
-                  <Target className="h-4 w-4 text-muted-foreground group-hover:text-foreground" />
-                </div>
-                <h4 className="font-display text-lg font-bold">Browse Matched Jobs</h4>
-                <p className="text-xs text-ink-soft mt-1">
-                  Inspect roles at Anthropic, Stripe, Apple with verified alumni referrers.
-                </p>
-              </button> */}
-
-              {/* <button
-                type="button"
-                onClick={() => selectTab("folio")}
-                className="p-4 border border-rule bg-paper hover:border-foreground text-left transition-colors group block cursor-pointer"
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <span className="eyebrow">Dossier</span>
-                  <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-foreground" />
-                </div>
-                <h4 className="font-display text-lg font-bold">Edit Student Folio</h4>
-                <p className="text-xs text-ink-soft mt-1">
-                  Update projects, upload resume PDF, and verify technical skills.
-                </p>
-              </button> */}
-            </div>
-
-            {/* Split layout: Recent Messages + Recommended Opportunities */}
-            < div className="grid lg:grid-cols-12 gap-8">
-              {/* Left Column: Direct Inquiries */}
-              <div className="lg:col-span-6 space-y-4">
-                <div className="flex items-center justify-between border-b border-rule pb-2">
-                  <div className="flex items-center gap-2">
-                    <MessageSquare className="h-4 w-4 text-accent" />
-                    <h3 className="font-display text-xl font-bold">Recent Inquiries</h3>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => selectTab("messages")}
-                    className="font-mono text-xs text-accent hover:underline cursor-pointer flex items-center gap-1"
-                  >
-                    Open Messages Hub <ArrowRight className="h-3 w-3" />
-                  </button>
-                </div>
-
-                <div className="divide-y divide-rule border border-rule bg-paper">
-                  {chatPartners.slice(0, 3).map((partner) => {
-                    const lastMsg = messages
-                      .filter((m) => m.sender === partner.id || m.recipient === partner.id)
-                      .slice(-1)[0];
-                    const portrait = getAlumniPortrait(partner.id);
-
-                    return (
-                      <div
-                        key={partner.id}
-                        onClick={() => {
-                          setActiveChatPartnerId(partner.id);
-                          selectTab("messages");
-                        }}
-                        className="p-4 hover:bg-accent/5 transition-colors cursor-pointer flex items-start gap-3.5"
-                      >
-                        {portrait ? (
-                          <img src={portrait} alt={partner.full_name} className="h-10 w-10 rounded-full object-cover border border-rule shrink-0" />
-                        ) : (
-                          <Monogram name={partner.full_name} className="h-10 w-10 text-xs shrink-0" />
-                        )}
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center justify-between">
-                            <span className="font-display text-base font-semibold text-foreground truncate">
-                              {partner.full_name}
-                            </span>
-                            <span className="font-mono text-[10px] text-muted-foreground">
-                              {partner.company || "Ashwood Lab"}
-                            </span>
-                          </div>
-                          <p className="text-xs text-ink-soft line-clamp-1 mt-0.5">
-                            {lastMsg ? lastMsg.body : `Connected on Ashwood Register · ${partner.headline || "Alumnus"}`}
-                          </p>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Right Column: Top Matched Opportunities */}
-              <div className="lg:col-span-6 space-y-4">
-                <div className="flex items-center justify-between border-b border-rule pb-2">
-                  <div className="flex items-center gap-2">
-                    <Target className="h-4 w-4 text-accent" />
-                    <h3 className="font-display text-xl font-bold">Top Matched Roles</h3>
-                  </div>
+          <div className="space-y-8 animate-in fade-in duration-200">
+            {activePersona === "student" ? (
+              /* STUDENT OVERVIEW */
+              <>
+                {/* Student Quick Actions Bar */}
+                <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-1">
                   <button
                     type="button"
                     onClick={() => selectTab("seeking")}
-                    className="font-mono text-xs text-accent hover:underline cursor-pointer flex items-center gap-1"
+                    className="p-4 border border-rule bg-paper hover:border-foreground text-left transition-colors group cursor-pointer"
                   >
-                    View All {allJobs.length} Roles <ArrowRight className="h-3 w-3" />
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="eyebrow">Career Pipeline</span>
+                      <Target className="h-4 w-4 text-muted-foreground group-hover:text-foreground" />
+                    </div>
+                    <h4 className="font-display text-base font-bold">Browse Matched Jobs</h4>
+                    <p className="text-xs text-ink-soft mt-1">
+                      Inspect {allJobs.length} roles at Anthropic, Stripe with alumni referrers.
+                    </p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => selectTab("microtasks")}
+                    className="p-4 border border-accent bg-accent/10 hover:bg-accent hover:text-accent-foreground text-left transition-colors group cursor-pointer"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="eyebrow text-accent group-hover:text-accent-foreground">Proof of Work</span>
+                      <Award className="h-4 w-4" />
+                    </div>
+                    <h4 className="font-display text-base font-bold">Microtasks (1 Point Each)</h4>
+                    <p className="text-xs text-ink-soft group-hover:text-accent-foreground/80 mt-1">
+                      Submit deliverables via Google Drive or file upload for credibility.
+                    </p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => selectTab("mentorship")}
+                    className="p-4 border border-rule bg-paper hover:border-foreground text-left transition-colors group cursor-pointer"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="eyebrow">Alumni Counsel</span>
+                      <UserCheck className="h-4 w-4 text-muted-foreground group-hover:text-foreground" />
+                    </div>
+                    <h4 className="font-display text-base font-bold">Book Office Hours</h4>
+                    <p className="text-xs text-ink-soft mt-1">
+                      Connect 1-on-1 with industry veterans and faculty researchers.
+                    </p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => selectTab("folio")}
+                    className="p-4 border border-rule bg-paper hover:border-foreground text-left transition-colors group block cursor-pointer"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="eyebrow">Dossier</span>
+                      <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-foreground" />
+                    </div>
+                    <h4 className="font-display text-base font-bold">Edit Student Folio</h4>
+                    <p className="text-xs text-ink-soft mt-1">
+                      Update projects, GPA, resume PDF, and technical skills.
+                    </p>
                   </button>
                 </div>
 
-                <div className="divide-y divide-rule border border-rule bg-paper">
-                  {matchedJobs.slice(0, 3).map((job) => (
-                    <div key={job.id} className="p-4 flex items-start justify-between gap-4 hover:bg-accent/5 transition-colors">
-                      <div className="flex items-start gap-3 min-w-0">
-                        <CompanyLogo company={job.company} size="md" className="shrink-0 mt-0.5" />
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-2">
-                            <h4 className="font-display text-base font-semibold text-foreground truncate">{job.title}</h4>
-                            <span className="font-mono text-[10px] bg-accent/10 text-accent px-1.5 py-0.2 border border-accent/30 font-semibold shrink-0">
-                              {job.matchScore}% Match
-                            </span>
-                          </div>
-                          <p className="font-mono text-xs text-muted-foreground mt-0.5">
-                            {job.company} · {job.location || "Remote"} · {job.kind}
-                          </p>
-                        </div>
+                {/* Split layout: Recent Messages + Recommended Opportunities */}
+                <div className="grid lg:grid-cols-12 gap-8">
+                  {/* Left Column: Direct Inquiries */}
+                  <div className="lg:col-span-6 space-y-4">
+                    <div className="flex items-center justify-between border-b border-rule pb-2">
+                      <div className="flex items-center gap-2">
+                        <MessageSquare className="h-4 w-4 text-accent" />
+                        <h3 className="font-display text-xl font-bold">Recent Inquiries</h3>
                       </div>
                       <button
                         type="button"
-                        onClick={() => {
-                          setActiveReferralModalJobId(job.id);
-                        }}
-                        className="bg-primary text-primary-foreground px-3 py-1 text-xs uppercase tracking-wider font-semibold hover:bg-accent cursor-pointer transition-colors shrink-0"
+                        onClick={() => selectTab("messages")}
+                        className="font-mono text-xs text-accent hover:underline cursor-pointer flex items-center gap-1"
                       >
-                        Referral
+                        Open Messages Hub <ArrowRight className="h-3 w-3" />
                       </button>
                     </div>
-                  ))}
-                </div>
-              </div>
-            </div >
 
-            {/* Active Referral Requests Tracking */}
-            < div className="space-y-4" >
-              <div className="flex items-center justify-between border-b border-rule pb-2">
-                <div className="flex items-center gap-2">
-                  <ShieldCheck className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                  <h3 className="font-display text-xl font-bold">Active Referral Pipeline</h3>
-                </div>
-                <span className="font-mono text-xs text-muted-foreground">
-                  {submittedReferrals.length} referrals dispatched with verified portfolio
-                </span>
-              </div>
+                    <div className="divide-y divide-rule border border-rule bg-paper">
+                      {chatPartners.slice(0, 3).map((partner) => {
+                        const lastMsg = messages
+                          .filter((m) => m.sender === partner.id || m.recipient === partner.id)
+                          .slice(-1)[0];
+                        const portrait = getAlumniPortrait(partner.id);
 
-              <div className="border border-rule bg-paper overflow-x-auto">
-                <table className="w-full text-left font-sans text-xs">
-                  <thead className="border-b border-rule font-mono text-[11px] text-muted-foreground uppercase tracking-wider bg-background/50">
-                    <tr>
-                      <th className="p-3.5">Opportunity</th>
-                      <th className="p-3.5">Organization</th>
-                      <th className="p-3.5">Candidate Dossier</th>
-                      <th className="p-3.5">Vouch Status</th>
-                      <th className="p-3.5">Timeline</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-rule">
-                    {submittedReferrals.map((ref) => (
-                      <tr key={ref.id} className="hover:bg-accent/5 transition-colors">
-                        <td className="p-3.5 font-display text-sm font-semibold text-foreground">{ref.jobTitle}</td>
-                        <td className="p-3.5 font-mono text-muted-foreground">{ref.company}</td>
-                        <td className="p-3.5">
-                          <span className="inline-flex items-center gap-1 font-mono text-[11px] text-foreground font-medium">
-                            <CheckCircle2 className="h-3.5 w-3.5 text-accent" />
-                            {ref.candidateName} (Class of '25)
-                          </span>
-                        </td>
-                        <td className="p-3.5">
-                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 font-mono text-[10px] uppercase font-semibold ${ref.status === "Vouched & Forwarded"
-                            ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30"
-                            : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30"
-                            }`}>
-                            {ref.status}
-                          </span>
-                        </td>
-                        <td className="p-3.5 font-mono text-muted-foreground">{ref.submittedAt}</td>
-                      </tr>
+                        return (
+                          <div
+                            key={partner.id}
+                            onClick={() => {
+                              setActiveChatPartnerId(partner.id);
+                              selectTab("messages");
+                            }}
+                            className="p-4 hover:bg-accent/5 transition-colors cursor-pointer flex items-start gap-3.5"
+                          >
+                            {portrait ? (
+                              <img src={portrait} alt={partner.full_name} className="h-10 w-10 rounded-full object-cover border border-rule shrink-0" />
+                            ) : (
+                              <Monogram name={partner.full_name} className="h-10 w-10 text-xs shrink-0" />
+                            )}
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center justify-between">
+                                <span className="font-display text-base font-semibold text-foreground truncate">
+                                  {partner.full_name}
+                                </span>
+                                <span className="font-mono text-[10px] text-muted-foreground">
+                                  {partner.company || "Ashwood Lab"}
+                                </span>
+                              </div>
+                              <p className="text-xs text-ink-soft line-clamp-1 mt-0.5">
+                                {lastMsg ? lastMsg.body : `Connected on Ashwood Register · ${partner.headline || "Alumnus"}`}
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Right Column: Top Matched Opportunities */}
+                  <div className="lg:col-span-6 space-y-4">
+                    <div className="flex items-center justify-between border-b border-rule pb-2">
+                      <div className="flex items-center gap-2">
+                        <Target className="h-4 w-4 text-accent" />
+                        <h3 className="font-display text-xl font-bold">Top Matched Roles</h3>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => selectTab("seeking")}
+                        className="font-mono text-xs text-accent hover:underline cursor-pointer flex items-center gap-1"
+                      >
+                        View All {allJobs.length} Roles <ArrowRight className="h-3 w-3" />
+                      </button>
+                    </div>
+
+                    <div className="divide-y divide-rule border border-rule bg-paper">
+                      {matchedJobs.slice(0, 3).map((job) => (
+                        <div key={job.id} className="p-4 flex items-start justify-between gap-4 hover:bg-accent/5 transition-colors">
+                          <div className="flex items-start gap-3 min-w-0">
+                            <CompanyLogo company={job.company} size="md" className="shrink-0 mt-0.5" />
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-2">
+                                <h4 className="font-display text-base font-semibold text-foreground truncate">{job.title}</h4>
+                                <span className="font-mono text-[10px] bg-accent/10 text-accent px-1.5 py-0.2 border border-accent/30 font-semibold shrink-0">
+                                  {job.matchScore}% Match
+                                </span>
+                              </div>
+                              <p className="font-mono text-xs text-muted-foreground mt-0.5">
+                                {job.company} · {job.location || "Remote"} · {job.kind}
+                              </p>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setActiveReferralModalJobId(job.id)}
+                            className="bg-primary text-primary-foreground px-3 py-1 text-xs uppercase tracking-wider font-semibold hover:bg-accent cursor-pointer transition-colors shrink-0"
+                          >
+                            Referral
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Active Referral Requests Tracking */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between border-b border-rule pb-2">
+                    <div className="flex items-center gap-2">
+                      <ShieldCheck className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                      <h3 className="font-display text-xl font-bold">Active Referral Pipeline</h3>
+                    </div>
+                    <span className="font-mono text-xs text-muted-foreground">
+                      {submittedReferrals.length} referrals dispatched with verified portfolio
+                    </span>
+                  </div>
+
+                  <div className="border border-rule bg-paper overflow-x-auto">
+                    <table className="w-full text-left font-sans text-xs">
+                      <thead className="border-b border-rule font-mono text-[11px] text-muted-foreground uppercase tracking-wider bg-background/50">
+                        <tr>
+                          <th className="p-3.5">Opportunity</th>
+                          <th className="p-3.5">Organization</th>
+                          <th className="p-3.5">Candidate Dossier</th>
+                          <th className="p-3.5">Vouch Status</th>
+                          <th className="p-3.5">Timeline</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-rule">
+                        {submittedReferrals.map((ref) => (
+                          <tr key={ref.id} className="hover:bg-accent/5 transition-colors">
+                            <td className="p-3.5 font-display text-sm font-semibold text-foreground">{ref.jobTitle}</td>
+                            <td className="p-3.5 font-mono text-muted-foreground">{ref.company}</td>
+                            <td className="p-3.5">
+                              <span className="inline-flex items-center gap-1 font-mono text-[11px] text-foreground font-medium">
+                                <CheckCircle2 className="h-3.5 w-3.5 text-accent" />
+                                {ref.candidateName} (Class of '25)
+                              </span>
+                            </td>
+                            <td className="p-3.5">
+                              <span className={`inline-flex items-center gap-1 px-2 py-0.5 font-mono text-[10px] uppercase font-semibold ${ref.status === "Vouched & Forwarded"
+                                  ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30"
+                                  : ref.status === "Interview Scheduled"
+                                    ? "bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/30"
+                                    : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30"
+                                }`}>
+                                {ref.status}
+                              </span>
+                            </td>
+                            <td className="p-3.5 font-mono text-muted-foreground">{ref.submittedAt}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </>
+            ) : (
+              /* ALUMNI & FACULTY RECRUITER COMMAND OVERVIEW */
+              <>
+                {/* Recruiter / Faculty Header & Action Bar */}
+                <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setIsPostModalOpen(true)}
+                    className="p-4 border border-accent bg-accent/10 hover:bg-accent hover:text-accent-foreground text-left transition-colors group cursor-pointer"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="eyebrow text-accent group-hover:text-accent-foreground">Hiring & Lab</span>
+                      <Plus className="h-4 w-4" />
+                    </div>
+                    <h4 className="font-display text-base font-bold">
+                      {activePersona === "alumni" ? "Post Job / Internship" : "Publish Research Grant"}
+                    </h4>
+                    <p className="text-xs text-ink-soft group-hover:text-accent-foreground/80 mt-1">
+                      List openings at your organization with direct internal referral vouching.
+                    </p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => selectTab("microtasks")}
+                    className="p-4 border border-rule bg-paper hover:border-foreground text-left transition-colors group cursor-pointer"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="eyebrow">Proof of Work</span>
+                      <Award className="h-4 w-4 text-accent" />
+                    </div>
+                    <h4 className="font-display text-base font-bold">Commission Microtask</h4>
+                    <p className="text-xs text-ink-soft mt-1">
+                      Assign tasks for 1 binary credibility point; verify student deliverables.
+                    </p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => selectTab("talent_scout")}
+                    className="p-4 border border-rule bg-paper hover:border-foreground text-left transition-colors group cursor-pointer"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="eyebrow">Talent Pipeline</span>
+                      <GraduationCap className="h-4 w-4 text-accent" />
+                    </div>
+                    <h4 className="font-display text-base font-bold">Scout Student Folios</h4>
+                    <p className="text-xs text-ink-soft mt-1">
+                      Inspect {SCOUT_STUDENTS.length} verified candidate dossiers, GPAs & code repositories.
+                    </p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => selectTab("mentorship")}
+                    className="p-4 border border-rule bg-paper hover:border-foreground text-left transition-colors group cursor-pointer"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="eyebrow">Office Hours</span>
+                      <UserCheck className="h-4 w-4 text-accent" />
+                    </div>
+                    <h4 className="font-display text-base font-bold">Mentorship Calendar</h4>
+                    <p className="text-xs text-ink-soft mt-1">
+                      {openToMentorState ? "✓ Accepting Mentees" : "✕ Advising Paused"} · {mentorshipRequests.length} sessions
+                    </p>
+                  </button>
+                </div>
+
+                {/* Main Candidate Review Console: Incoming Student Applications */}
+                <div className="space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-rule pb-2">
+                    <div className="flex items-center gap-2">
+                      <ShieldCheck className="h-5 w-5 text-accent" />
+                      <div>
+                        <h3 className="font-display text-xl font-bold">
+                          {activePersona === "alumni"
+                            ? "Incoming Student Candidates for Internal Referral"
+                            : "Research Assistant & Lab Applicants"}
+                        </h3>
+                        <p className="font-mono text-xs text-muted-foreground">
+                          Review student candidate statements, verify their attached folios, and vouch or schedule interviews.
+                        </p>
+                      </div>
+                    </div>
+                    <span className="font-mono text-xs font-semibold px-2.5 py-1 bg-accent/10 text-accent border border-accent/30 self-start sm:self-auto">
+                      {submittedReferrals.length} Candidates Pending Review
+                    </span>
+                  </div>
+
+                  <div className="border border-rule bg-paper divide-y divide-rule">
+                    {submittedReferrals.map((candidate) => (
+                      <div key={candidate.id} className="p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4 hover:bg-accent/5 transition-colors">
+                        <div className="space-y-2 min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <h4 className="font-display text-base font-bold text-foreground">
+                              {candidate.candidateName}
+                            </h4>
+                            <span className="font-mono text-[11px] px-2 py-0.5 bg-background border border-rule text-muted-foreground font-semibold">
+                              Ashwood Class of '25 · B.Tech CS
+                            </span>
+                            <span className={`font-mono text-[10px] uppercase font-semibold px-2 py-0.5 border ${candidate.status === "Vouched & Forwarded"
+                                ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30"
+                                : candidate.status === "Interview Scheduled"
+                                  ? "bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/30"
+                                  : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30"
+                              }`}>
+                              {candidate.status}
+                            </span>
+                          </div>
+
+                          <div className="font-mono text-xs text-muted-foreground flex flex-wrap items-center gap-x-3 gap-y-1">
+                            <span>Applying for: <strong className="text-foreground">{candidate.jobTitle}</strong></span>
+                            <span>•</span>
+                            <span>Organization: <strong className="text-foreground">{candidate.company}</strong></span>
+                            <span>•</span>
+                            <span>Submitted: {candidate.submittedAt}</span>
+                          </div>
+
+                          <p className="text-xs text-ink-soft italic bg-background/50 p-2.5 border-l-2 border-accent">
+                            "{candidate.note}"
+                          </p>
+
+                          {candidate.folioAttached && (
+                            <div className="inline-flex items-center gap-1.5 font-mono text-[11px] text-accent font-medium">
+                              <CheckCircle2 className="h-3.5 w-3.5" />
+                              <span>Verified Student Folio Attached: GPA 3.92, 4 Verified Repositories, Systems Architecture</span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Recruiter / Reviewer Actions */}
+                        <div className="flex flex-wrap items-center gap-2 shrink-0 lg:flex-col lg:items-end">
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => handleVouchCandidate(candidate.id)}
+                              className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 font-mono text-xs font-semibold cursor-pointer transition-colors flex items-center gap-1"
+                            >
+                              <CheckCircle2 className="h-3.5 w-3.5" />
+                              Vouch & Forward to HR
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleScheduleInterview(candidate.id)}
+                              className="border border-rule hover:border-foreground bg-background px-3 py-1.5 font-mono text-xs font-semibold cursor-pointer transition-colors"
+                            >
+                              Schedule Screening
+                            </button>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const target = chatPartners[0];
+                                if (target) setActiveChatPartnerId(target.id);
+                                selectTab("messages");
+                              }}
+                              className="font-mono text-xs text-accent hover:underline flex items-center gap-1 cursor-pointer"
+                            >
+                              <MessageSquare className="h-3.5 w-3.5" /> Message Candidate
+                            </button>
+                            <span className="text-rule">•</span>
+                            <button
+                              type="button"
+                              onClick={() => handleDeclineReferral(candidate.id)}
+                              className="font-mono text-xs text-muted-foreground hover:text-destructive cursor-pointer"
+                            >
+                              Archive
+                            </button>
+                          </div>
+                        </div>
+                      </div>
                     ))}
-                  </tbody>
-                </table>
-              </div>
-            </div >
-          </div >
-        )
-        }
+                  </div>
+                </div>
+
+                {/* Secondary Split: Microtasks Verification Shortcut + Quick Talent Scout */}
+                <div className="grid lg:grid-cols-12 gap-8">
+                  {/* Left: Microtasks Review Box */}
+                  <div className="lg:col-span-6 space-y-4">
+                    <div className="flex items-center justify-between border-b border-rule pb-2">
+                      <div className="flex items-center gap-2">
+                        <Award className="h-4 w-4 text-accent" />
+                        <h4 className="font-display text-lg font-bold">Microtask Deliverables & Proof of Work</h4>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => selectTab("microtasks")}
+                        className="font-mono text-xs text-accent hover:underline flex items-center gap-1 cursor-pointer"
+                      >
+                        Manage All Tasks <ArrowRight className="h-3 w-3" />
+                      </button>
+                    </div>
+
+                    <div className="border border-rule bg-paper p-5 space-y-3">
+                      <p className="text-xs text-ink-soft leading-relaxed">
+                        Students submit code repositories, Google Drive documents, or zipped build artifacts to prove mastery.
+                        Awarding credit gives the student <strong>1 binary credibility point</strong>.
+                      </p>
+                      <div className="flex items-center justify-between pt-2">
+                        <span className="font-mono text-xs text-muted-foreground">
+                          Turnaround standard: 48–72 hours
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => selectTab("microtasks")}
+                          className="bg-primary text-primary-foreground px-4 py-1.5 font-mono text-xs uppercase font-semibold hover:bg-accent cursor-pointer transition-colors"
+                        >
+                          Review Deliverables Console →
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right: Featured Candidates from Talent Scout */}
+                  <div className="lg:col-span-6 space-y-4">
+                    <div className="flex items-center justify-between border-b border-rule pb-2">
+                      <div className="flex items-center gap-2">
+                        <GraduationCap className="h-4 w-4 text-accent" />
+                        <h4 className="font-display text-lg font-bold">Top Verified Talent Pool</h4>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => selectTab("talent_scout")}
+                        className="font-mono text-xs text-accent hover:underline flex items-center gap-1 cursor-pointer"
+                      >
+                        Full Talent Scout ({SCOUT_STUDENTS.length}) <ArrowRight className="h-3 w-3" />
+                      </button>
+                    </div>
+
+                    <div className="divide-y divide-rule border border-rule bg-paper">
+                      {SCOUT_STUDENTS.slice(0, 2).map((scout) => (
+                        <div key={scout.id} className="p-3.5 flex items-center justify-between gap-3 hover:bg-accent/5 transition-colors">
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2">
+                              <h5 className="font-display text-sm font-bold text-foreground">{scout.fullName}</h5>
+                              <span className="font-mono text-[10px] text-muted-foreground font-semibold">
+                                GPA {scout.gpa} · Class of '{scout.gradYear.toString().slice(-2)}
+                              </span>
+                            </div>
+                            <p className="text-xs text-ink-soft line-clamp-1 mt-0.5">{scout.seekingRole}</p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              selectTab("talent_scout");
+                            }}
+                            className="border border-rule px-3 py-1 font-mono text-xs text-foreground hover:border-foreground shrink-0 cursor-pointer"
+                          >
+                            View Folio
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        )}
 
         {/* TAB 2: MANAGE MESSAGES HUB */}
         {
@@ -1223,6 +1521,61 @@ export function UnifiedDashboardPage() {
                 </button>
               </div>
 
+              {/* Candidate Pipeline for Recruiter */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between border-b border-rule pb-2">
+                  <div className="flex items-center gap-2">
+                    <ShieldCheck className="h-4 w-4 text-accent" />
+                    <h4 className="font-display text-lg font-bold">Candidate Applications & Referral Pipeline</h4>
+                  </div>
+                  <span className="font-mono text-xs text-muted-foreground">
+                    {submittedReferrals.length} candidates awaiting vouching
+                  </span>
+                </div>
+
+                <div className="border border-rule bg-paper divide-y divide-rule">
+                  {submittedReferrals.map((c) => (
+                    <div key={c.id} className="p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-accent/5 transition-colors">
+                      <div className="space-y-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h5 className="font-display text-base font-bold text-foreground">{c.candidateName}</h5>
+                          <span className={`font-mono text-[10px] uppercase font-semibold px-2 py-0.5 border ${c.status === "Vouched & Forwarded"
+                              ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30"
+                              : c.status === "Interview Scheduled"
+                                ? "bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/30"
+                                : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30"
+                            }`}>
+                            {c.status}
+                          </span>
+                        </div>
+                        <p className="font-mono text-xs text-muted-foreground">
+                          Role: <strong className="text-foreground">{c.jobTitle}</strong> ({c.company}) · Submitted: {c.submittedAt}
+                        </p>
+                        <p className="text-xs text-ink-soft italic">"{c.note}"</p>
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => handleVouchCandidate(c.id)}
+                          className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 font-mono text-xs font-semibold cursor-pointer transition-colors flex items-center gap-1"
+                        >
+                          <CheckCircle2 className="h-3.5 w-3.5" />
+                          Vouch & Forward
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleScheduleInterview(c.id)}
+                          className="border border-rule hover:border-foreground bg-background px-3 py-1.5 font-mono text-xs font-semibold cursor-pointer transition-colors"
+                        >
+                          Screen
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
               {/* List of jobs posted by the user */}
               <div className="space-y-4">
                 <h4 className="eyebrow">Your Active Listings ({localPostedJobs.length})</h4>
@@ -1380,8 +1733,8 @@ export function UnifiedDashboardPage() {
                 activePersona === "student"
                   ? "Student Microtasks & Deliverables"
                   : activePersona === "alumni"
-                  ? "Alumni Commissioned Work & Student Deliverables"
-                  : "Faculty Research Microtasks & Reviews"
+                    ? "Alumni Commissioned Work & Student Deliverables"
+                    : "Faculty Research Microtasks & Reviews"
               }
               description={
                 activePersona === "student"
@@ -1392,8 +1745,97 @@ export function UnifiedDashboardPage() {
           </div>
         )}
 
-        {/* TAB 6: DOSSIER & CREDENTIALS HUB */}
+        {/* TAB 6: DOSSIER & CREDENTIALS HUB (STUDENT) */}
         {activeTab === "folio" && <StudentProfilePage />}
+
+        {/* TAB: TALENT SCOUT & STUDENT FOLIOS (ALUMNI & FACULTY) */}
+        {activeTab === "talent_scout" && (
+          <div className="space-y-6 animate-in fade-in duration-200">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-rule pb-4">
+              <div>
+                <h3 className="font-display text-2xl font-bold">
+                  {activePersona === "alumni"
+                    ? "Student Talent Scout & Dossier Explorer"
+                    : "Student Research Scholars & Fellowship Candidates"}
+                </h3>
+                <p className="text-xs text-ink-soft">
+                  Direct access to verified Ashwood engineering, AI, and design fellows. Review GPA, thesis work, and initiate outreach.
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-xs px-2.5 py-1 bg-accent/10 text-accent border border-accent/30 font-semibold">
+                  {SCOUT_STUDENTS.length} Verified Candidates
+                </span>
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-6">
+              {SCOUT_STUDENTS.map((scout) => (
+                <div key={scout.id} className="border border-rule bg-paper p-5 flex flex-col justify-between space-y-4 hover:border-foreground transition-colors">
+                  <div className="space-y-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-display text-lg font-bold text-foreground">{scout.fullName}</h4>
+                          <span className="font-mono text-[10px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 px-2 py-0.2 font-semibold">
+                            Class of '{scout.gradYear.toString().slice(-2)}
+                          </span>
+                        </div>
+                        <p className="font-mono text-xs text-muted-foreground mt-0.5">
+                          {scout.department} · <strong className="text-foreground">GPA {scout.gpa}</strong>
+                        </p>
+                      </div>
+                      <span className="font-mono text-xs px-2 py-0.5 bg-background border border-rule text-muted-foreground">
+                        {scout.projects} Repositories
+                      </span>
+                    </div>
+
+                    <p className="font-mono text-xs text-accent font-medium">
+                      Target Role: {scout.seekingRole}
+                    </p>
+
+                    <p className="text-xs text-ink-soft leading-relaxed italic bg-background/50 p-2.5 border-l-2 border-accent">
+                      Thesis / Capstone: "{scout.thesis}"
+                    </p>
+
+                    <div className="space-y-1.5 pt-1">
+                      <span className="eyebrow text-[10px]">Verified Skills & Stack:</span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {scout.skills.map((skill) => (
+                          <span
+                            key={skill}
+                            className="font-mono text-[10px] px-2 py-0.5 bg-background border border-rule text-foreground font-medium"
+                          >
+                            {skill}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="border-t border-rule pt-3.5 flex items-center justify-between">
+                    <span className="font-mono text-[11px] text-muted-foreground">
+                      Dossier Verified by Ashwood Registrar
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const target = chatPartners[0];
+                          if (target) setActiveChatPartnerId(target.id);
+                          selectTab("messages");
+                        }}
+                        className="bg-primary text-primary-foreground px-3 py-1.5 text-xs uppercase tracking-wider font-semibold hover:bg-accent cursor-pointer transition-colors flex items-center gap-1"
+                      >
+                        <MessageSquare className="h-3 w-3" /> Message Candidate
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {activeTab === "account" && <AccountPage />}
       </Section >

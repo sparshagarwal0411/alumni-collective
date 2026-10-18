@@ -225,3 +225,50 @@
   background: #ffffff;
 }
 
+/* ==========================================================================
+   Infinite Flowing Marquee (Right to Left Motion)
+   ========================================================================== */
+@keyframes marquee-flow-left {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.animate-marquee-flow {
+  display: flex;
+  width: max-content;
+  animation: marquee-flow-left 40s linear infinite;
+  will-change: transform;
+}
+
+.animate-marquee-flow-fast {
+  display: flex;
+  width: max-content;
+  animation: marquee-flow-left 30s linear infinite;
+  will-change: transform;
+}
+
+.animate-marquee-flow-slow {
+  display: flex;
+  width: max-content;
+  animation: marquee-flow-left 50s linear infinite;
+  will-change: transform;
+}
+
+.animate-marquee-flow-xslow {
+  display: flex;
+  width: max-content;
+  animation: marquee-flow-left 60s linear infinite;
+  will-change: transform;
+}
+
+.marquee-group:hover .animate-marquee-flow,
+.marquee-group:hover .animate-marquee-flow-fast,
+.marquee-group:hover .animate-marquee-flow-slow,
+.marquee-group:hover .animate-marquee-flow-xslow {
+  animation-play-state: paused;
+}
+
