@@ -1,223 +1,227 @@
-# Alumni Collective
+# Credence — by Broken Table
 
-[![React](https://img.shields.io/badge/React-19-61dafb?style=flat&logo=react)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178c6?style=flat&logo=typescript)](https://www.typescriptlang.org/)
-[![Vite](https://img.shields.io/badge/Vite-8-646cff?style=flat&logo=vite)](https://vitejs.dev/)
-[![TanStack Router](https://img.shields.io/badge/TanStack-Router%20%26%20Start-ff4154?style=flat)](https://tanstack.com/router)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-38bdf8?style=flat&logo=tailwindcss)](https://tailwindcss.com/)
-[![Supabase](https://img.shields.io/badge/Supabase-Backend%20%26%20Auth-3ecf8e?style=flat&logo=supabase)](https://supabase.com/)
+<div align="center">
 
-A modern, editorial-grade alumni engagement and networking platform designed for colleges and universities. **Alumni Collective** bridges the gap between graduates, current students, and academic institutions through high-impact mentorship, opportunity discovery, visual network exploration, microtasks, and philanthropic giving.
+```
+   ______              __                      
+  / ____/_______  ____/ /__  ____  ________    
+ / /   / ___/ _ \/ __  / _ \/ __ \/ ___/ _ \   
+/ /___/ /  /  __/ /_/ /  __/ / / / /__/  __/   
+\____/_/   \___/\__,_/\___/_/ /_/\___/\___/    
+```
 
-Built with an editorial aesthetic—eschewing generic AI templates for warm off-whites, refined typography, generous whitespace, and purposeful asymmetrical layouts.
+### *The 3D Relational Knowledge Graph & Proof-of-Work Alumni Network*
 
----
+[![Made by Broken Table](https://img.shields.io/badge/Made%20by-Broken%20Table-c15f3c?style=for-the-badge&logo=table&logoColor=white)](https://github.com/sparshagarwal0411/alumni-collective)
+[![React 19](https://img.shields.io/badge/React-19-61dafb?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178c6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Three.js WebGL](https://img.shields.io/badge/Three.js-WebGL%20Graph-black?style=for-the-badge&logo=three.js&logoColor=white)](https://threejs.org/)
+[![TanStack Router](https://img.shields.io/badge/TanStack-Router%20%26%20Query-ff4154?style=for-the-badge)](https://tanstack.com/)
+[![Tailwind CSS v4](https://img.shields.io/badge/Tailwind_CSS-v4-38bdf8?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+[![Dual AI Engine](https://img.shields.io/badge/AI-Gemini%20Flash%20%2B%20Groq%20Llama--3-8e44ad?style=for-the-badge)](https://groq.com/)
+[![Supabase](https://img.shields.io/badge/Supabase-Auth%20%26%20Postgres-3ecf8e?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com/)
 
-## Table of Contents
-
-- [Features](#features)
-- [Tech Stack](#tech-stack)
-- [Directory Structure](#directory-structure)
-- [Getting Started](#getting-started)
-- [Environment Configuration](#environment-configuration)
-- [Available Scripts](#available-scripts)
-- [Routing Conventions](#routing-conventions)
-- [Contributing & Development](#contributing--development)
-- [License](#license)
+</div>
 
 ---
 
-## Features
+## 📖 Overview
 
-### 🔍 Searchable Alumni Directory & Profiles
-- Dynamic multi-parameter filtering by graduation year, industry, employer, geographic region, and specialized skills.
-- Rich editorial profile views (`/alumni/:id`) with verified credentials, career timelines, and direct outreach actions.
+Traditional university alumni directories are static "phonebooks." Students spam cold messages on LinkedIn with a 2% response rate, while graduates are overwhelmed with unfocused connection requests offering zero signal of actual capability.
 
-### 🌐 Interactive Network & Regional Map
-- Visual alumni connection graph and interactive map view (`/network`) powered by Google Maps API to explore geographic distribution and industry clusters worldwide.
-
-### 🤝 Mentorship Hub
-- Structured 1-on-1 mentorship matching (`/mentorship`).
-- Booking workflow with goals, availability management, review processes, and ongoing mentorship tracking.
-
-### 💬 Direct Real-Time Messaging
-- Unified messaging interface (`/messages`) facilitating conversations between alumni, mentors, and students.
-
-### 💼 Jobs, Internships & Referrals
-- Job board (`/jobs`) curated by alumni with direct internal referral requests and application tracking.
-- Filter by contract type (Full-time, Internship, Remote), seniority, and alumni affiliation.
-
-### ⚡ Microtasks & Project Bounties
-- Project-based micro-internships (`/tasks`) posted by alumni for students to gain real-world portfolio experience.
-
-### 🎓 Student Career Portal
-- Tailored hub (`/student`) providing undergraduates with resume reviews, career exploration tools, and alumni access.
-
-### 👥 Affinity Communities & Chapters
-- Regional chapters and interest-based discussion groups (`/communities`) with member directories and activity feeds.
-
-### 📅 Events & Reunions
-- Event management (`/events`) for alumni galas, homecoming reunions, webinars, and networking meetups with RSVP management.
-
-### 🎁 Philanthropy & Giving Campaigns
-- Dedicated fundraising portal (`/give`) with campaign milestones, preset and custom contribution tiers, impact stories, and donation tracking.
-
-### 📊 Network & Class Analytics
-- Comprehensive platform dashboards (`/analytics`) showing demographic distributions, employment trends, giving metrics, and engagement statistics.
-
-### 🔒 Role-Based Authentication
-- Secure authentication powered by Supabase Auth with email magic links, password resets, and Google OAuth support.
-- Role-based experiences for Alumni, Current Students, and Administrators.
+**Credence**, engineered by **Broken Table**, fundamentally re-engineers alumni connectivity. It replaces cold recruitment noise with **verified proof-of-work** and **interactive 3D relational topology**. Instead of asking for unearned favors, undergraduates build credibility through concrete code teardowns and design audits, while graduates easily discover pre-vetted institutional talent.
 
 ---
 
-## Tech Stack
+## 🏛️ The 4 Core Architectural Pillars
 
-| Layer | Technology |
-|---|---|
-| **Frontend Framework** | [React 19](https://react.dev/) + [Vite 8](https://vitejs.dev/) |
-| **Language** | [TypeScript](https://www.typescriptlang.org/) |
-| **Routing & SSR** | [TanStack Start](https://tanstack.com/start) & [TanStack Router](https://tanstack.com/router) |
-| **Styling** | [Tailwind CSS v4](https://tailwindcss.com/) with `@tailwindcss/vite` |
-| **UI Components** | [Radix UI](https://www.radix-ui.com/), [Lucide React Icons](https://lucide.dev/), [Sonner](https://sonner.emilkowal.ski/) |
-| **State & Data Fetching** | [TanStack React Query](https://tanstack.com/query) |
-| **Backend & Auth** | [Supabase](https://supabase.com/) (PostgreSQL, Auth, RLS) |
-| **Visualizations & Maps** | [Recharts](https://recharts.org/), [@googlemaps/js-api-loader](https://www.npmjs.com/package/@googlemaps/js-api-loader) |
-| **Forms & Validation** | [React Hook Form](https://react-hook-form.com/), [Zod](https://zod.dev/) |
+```mermaid
+flowchart TD
+    subgraph P1 ["Pillar 1: Dual-AI Omni-Parser"]
+        A[Undergraduate PDF Resume] --> B[Multimodal Gemini 1.5 Flash / Groq]
+        B --> C[Canonical Vector Tags: Skills, Societies, Cohort]
+    end
+
+    subgraph P2 ["Pillar 2: 3D Spatial Discovery"]
+        C --> D[3D WebGL Relational Space]
+        D --> E[Multi-Criteria Dynamic Dimming]
+        E --> F[Live Dijkstra Pathfinding with Anti-Collusion Formula]
+    end
+
+    subgraph P3 ["Pillar 3: Proof-of-Work Ledger"]
+        G[Alumni Commissions Microtask] --> H[Student Claims & Submits Deliverable URL]
+        H --> I[Alumni Review Desk: Audit Proof & Award +1 Point]
+    end
+
+    subgraph P4 ["Pillar 4: Agentic Warm Outreach"]
+        F -. Mutual Bridge .-> J[Agentic Warm Message Drafter]
+        I -. Earned Credibility .-> J
+        J --> K[Groq Llama-3.3 3-Sentence Contextual Dispatch]
+        K --> L[Realtime Two-Sided Direct Messaging]
+    end
+```
 
 ---
 
-## Directory Structure
+### 1. ⚡ Dual-AI Omni-Parser Onboarding
+* **Multimodal Document Extraction:** Ingests PDF resumes directly using **Gemini 1.5 Flash** to extract technical proficiencies, campus leadership, and coursework in $< 1\text{s}$.
+* **GitHub Repository Sync:** Analyzes public commit history and repository languages via **Groq Llama-3** to structure open-source contributions.
+* **Resilient Deterministic Taxonomy Fallback:** Built-in campus taxonomy resolver matches against authentic societies (*DevComm*, *The Debugging Society*, *IEEE*), engineering branches, and technology clusters with zero external API dependencies.
+* **1-Click Sample Ingestion:** Includes instantaneous sample profile loading for streamlined product demonstrations.
+
+### 2. 🌌 3D WebGL Relational Knowledge Graph
+* **Interactive Force-Directed Space:** Built with **Three.js** and WebGL, rendering alumni, faculty, and student nodes in an anti-hairball, spatial coordinate matrix.
+* **Dynamic Multi-Criteria Dimming:** Selecting employers (e.g. *Anthropic*, *Stripe*, *Google DeepMind*), departments, or societies highlights matching nodes while dimming unrelated vertices to $20\%$ opacity.
+* **Live Dijkstra Shortest-Path Calculation:** Offloads graph traversal to dedicated **Web Workers** (`dijkstra.worker.ts`), computing the lowest-resistance path between an undergraduate and any target alumnus using our anti-collusion resistance formula:
+$$\text{Weight} = \frac{1}{\min(5, \text{Points}) \times 5 + \text{Shared Societies} \times 2 + 0.1}$$
+
+### 3. 🛡️ Proof-of-Work Microtask Ledger & Alumni Review Desk
+* **Binary Credibility Points ($0$ or $1$):** Replaces vanity endorsements with verifiable deliverables. Students complete 1–3 hour micro-internships, architecture reviews, or compiler benchmarks.
+* **Deliverable Evidence Vault:** Students submit live Google Drive links, GitHub Pull Requests, or source archives alongside contextual submission notes.
+* **Alumni Review Desk:** A dedicated grading console allowing alumni to inspect submissions, provide structured feedback, and award verified $+1$ credibility points.
+* **Role Integrity & Governance:** Non-alumni are barred from posting tasks, while student claims are preserved exclusively for active learners.
+
+### 4. 💬 Agentic Warm Outreach & Relevance Messaging
+* **Groq Llama-3.3 Warm Drafter:** Synthesizes mutual campus societies, branch lineage, and completed microtask deliverables into a professional, respectful 3-sentence introduction.
+* **Two-Sided Chat Interface:** Clean separation between outbound dispatches (terracotta right-aligned) and inbound responses (paper left-aligned).
+* **Simulated Conversational Reply:** Includes an automated 1.5-second alumni response simulation to demonstrate active chat loops during live walkthroughs.
+
+---
+
+## 🎭 Role-Based Perspectives Matrix
+
+| Capability | Student Persona (`Dev / Arjun Sharma`) | Alumni Persona (`Vikram Choudhury`) | Faculty Persona (`Prof. Gayatri Sen`) |
+| :--- | :---: | :---: | :---: |
+| **Omni-Parser Resume Ingestion** | ✅ Full Access | 👁️ View Dossier | 👁️ View Dossier |
+| **3D Knowledge Graph & Dijkstra** | ✅ Student Origin Node | ✅ Alumni Origin Node | 👁️ Institutional Overview |
+| **Claim Proof-of-Work Microtask** | ✅ Active | 🚫 Disabled (Lock) | 🚫 Disabled (Lock) |
+| **Post Microtasks (Commission)** | 🚫 Restricted | ✅ Active | 🚫 Restricted |
+| **Alumni Review Desk & Grading** | 👁️ View Grade & Notes | ✅ Full Audit & $+1$ Pt | 👁️ View Ledgers |
+| **Agentic Warm Messaging** | ✅ Compose & Send | ✅ Receive & Reply | ✅ Mentor Inquiries |
+| **Event RSVPs & Access** | ✅ Attendee | ✅ Speaker / Attendee | ✅ Academic Host |
+
+---
+
+## 🛠️ Technology Stack
+
+```
+Credence Architecture
+├── Frontend Core: React 19 · TypeScript 5.8 · Vite 8
+├── Routing & Query: TanStack Router · TanStack Query
+├── Visualizations: Three.js · WebGL · Web Workers
+├── Design System: Tailwind CSS v4 · Radix UI · Lucide Icons · Sonner Toaster
+├── AI Orchestration: Gemini 1.5 Flash · Groq Llama-3.3-70b · Llama-3.1-8b
+└── Backend Infrastructure: Supabase (PostgreSQL · Realtime · Auth · RLS)
+```
+
+---
+
+## 📂 Project Directory Structure
 
 ```text
-alumni-collective/
-├── drizzle/                      # Database schema definitions & migrations
+final/
 ├── src/
-│   ├── assets/                   # Static assets, branding, and imagery
-│   ├── components/               # Reusable UI component library (Radix + Tailwind)
-│   ├── hooks/                    # Custom React hooks
-│   ├── integrations/
-│   │   └── supabase/             # Supabase clients, auth middlewares, and types
-│   ├── lib/                      # Utilities, helpers, and formatters
-│   ├── routes/                   # File-based routing (TanStack Router)
-│   │   ├── __root.tsx            # Global application shell layout
-│   │   ├── index.tsx             # Homepage / Editorial landing
-│   │   ├── directory.tsx         # Searchable alumni directory
-│   │   ├── alumni.$id.tsx        # Individual alumni profile view
-│   │   ├── network.tsx           # Interactive network graph & map
-│   │   ├── mentorship.tsx        # Mentorship matching & sessions
-│   │   ├── messages.tsx          # Real-time direct messaging
-│   │   ├── jobs.tsx              # Jobs, internships & referral board
-│   │   ├── tasks.tsx             # Microtasks & project bounties
-│   │   ├── communities.tsx       # Affinity groups & chapters
-│   │   ├── events.tsx            # Events, webinars & RSVP tracking
-│   │   ├── give.tsx              # Giving campaigns & donation tiers
-│   │   ├── analytics.tsx         # Platform and class analytics
-│   │   ├── student.tsx           # Student career portal
-│   │   ├── account.tsx           # User settings & profile management
-│   │   ├── auth.tsx              # Sign in / Sign up flow
-│   │   ├── reset-password.tsx    # Password reset handler
-│   │   └── updates.tsx           # Institutional updates & newsletter
-│   ├── routeTree.gen.ts          # Auto-generated TanStack router manifest
-│   ├── main.tsx                  # Client entry point
-│   ├── server.ts                 # Nitro server handler
-│   └── styles.css                # Global styles and design system variables
-├── .env.example                  # Environment variable template
+│   ├── components/
+│   │   ├── bounties/           # Alumni Review Desk & Submission Modals
+│   │   ├── companies/          # Canonical corporate brand emblems
+│   │   ├── graph/              # Three.js 3D WebGL Spatial Canvas
+│   │   ├── microtasks/         # Proof-of-Work task manager & ledger
+│   │   ├── network/            # Credibility audit popovers & inspector
+│   │   ├── onboarding/         # Dual-AI Omni-Parser Modal wizard
+│   │   ├── site/               # Chrome header, navigation, & editorial layouts
+│   │   └── ui/                 # TagChip clusters, dialogs, & sonner toasts
+│   ├── data/
+│   │   ├── nsutTaxonomy.ts     # Authentic societies, branches, & domains
+│   │   └── seedData.ts         # Canonical profiles & 39 relational edges
+│   ├── lib/
+│   │   ├── auth.tsx            # Multi-role authentication & demo switchers
+│   │   ├── chatStore.ts        # Unified message storage & auto-reply loop
+│   │   ├── studentProfile.ts   # Student dossier schema & local persistence
+│   │   └── supabaseSync.ts     # Postgres sync, task claiming, & atomic grading
+│   ├── routes/
+│   │   ├── alumni.$id.tsx      # Comprehensive individual alumni dossiers
+│   │   ├── messages.tsx        # High-relevance messaging & warm drafter
+│   │   ├── network.tsx         # 3D Graph Studio with Dijkstra shortest-path
+│   │   ├── student.tsx         # Undergraduate Folio & Omni-Parser integration
+│   │   └── tasks.tsx           # Microtasks ledger & Alumni Review Desk
+│   ├── services/
+│   │   ├── aiService.ts        # Dual-AI Omni-Parser & Groq warm drafter
+│   │   └── dijkstraService.ts  # Dijkstra pathfinder with worker fallback
+│   └── workers/
+│       └── dijkstra.worker.ts  # Background thread path calculation
 ├── package.json
 └── vite.config.ts
 ```
 
 ---
 
-## Getting Started
+## 🚀 Getting Started
 
 ### Prerequisites
-
-- **Node.js**: Version `20.x` or higher (recommended via `nvm`)
-- **Package Manager**: `npm` (or `bun` / `pnpm`)
-- **Supabase Account**: A Supabase project with database & authentication configured
+* **Node.js**: v18.0.0 or higher
+* **npm** or **pnpm**
 
 ### Installation
 
 1. **Clone the repository:**
-   ```sh
-   git clone <repository-url>
+   ```bash
+   git clone https://github.com/sparshagarwal0411/alumni-collective.git
    cd alumni-collective
    ```
 
 2. **Install dependencies:**
-   ```sh
+   ```bash
    npm install
    ```
 
-3. **Set up environment variables:**
-   ```sh
-   cp .env.example .env
+3. **Configure Environment Variables:**
+   Create a `.env` file in the project root:
+   ```env
+   VITE_SUPABASE_URL=your_supabase_url
+   VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_publishable_key
+   
+   # Optional AI Accelerators (Deterministic fallbacks active if omitted)
+   VITE_GEMINI_API_KEY=your_gemini_api_key
+   VITE_GROQ_API_KEY=your_groq_api_key
    ```
-   Fill in your Supabase credentials in `.env` (see [Environment Configuration](#environment-configuration)).
 
-4. **Start the local development server:**
-   ```sh
+4. **Launch the Development Server:**
+   ```bash
    npm run dev
    ```
-   Open [http://localhost:5173](http://localhost:5173) in your browser.
+   Open [http://localhost:8080](http://localhost:8080) in your browser.
+
+5. **Verify Production Build:**
+   ```bash
+   npm run build
+   ```
 
 ---
 
-## Environment Configuration
+## 🎬 2-Minute Demo Flow
 
-Create a `.env` file in the project root based on `.env.example`:
-
-| Variable | Description |
-|---|---|
-| `VITE_SUPABASE_URL` | Your Supabase Project URL (`https://xyzcompany.supabase.co`) |
-| `VITE_SUPABASE_PUBLISHABLE_KEY` | Public anonymous key for client-side API requests |
-| `VITE_SUPABASE_PROJECT_ID` | Your Supabase Project reference ID |
-| `SUPABASE_URL` | Server-side Supabase URL |
-| `SUPABASE_PUBLISHABLE_KEY` | Server-side publishable key |
-| `SUPABASE_PROJECT_ID` | Server-side project ID |
-
-> [!NOTE]
-> **Google OAuth Setup**:
-> Do not put Google Client Secrets into the `.env` file. Configure Google OAuth directly within your **Supabase Dashboard** under **Authentication -> Providers -> Google**.
+```
+[0:00 - 0:15] Hook: "Credence by Broken Table replaces cold LinkedIn DMs with verified proof-of-work."
+     │
+[0:15 - 0:42] /student: Open Omni-Parser -> Load Sample Resume -> Run AI Ingestion -> Apply to Dossier.
+     │
+[0:42 - 1:12] /network: 3D Knowledge Graph -> Filter by "Anthropic" -> Click node -> Run live Dijkstra Path.
+     │
+[1:12 - 1:40] /tasks: Switch to Alumni -> Open "Review Desk" -> Inspect deliverable -> Award +1 Credibility Pt.
+     │
+[1:40 - 2:00] /messages: Click "AI Warm Intro Drafter" -> Synthesize mutual ties -> Send -> Instant reply.
+```
 
 ---
 
-## Available Scripts
+## 👥 Credits
 
-| Script | Command | Purpose |
-|---|---|---|
-| **Development** | `npm run dev` | Runs the Vite development server with Hot Module Replacement |
-| **Build** | `npm run build` | Compiles client and server bundles for production |
-| **Build (Dev mode)** | `npm run build:dev` | Compiles the project targeting development mode |
-| **Preview** | `npm run preview` | Previews the production build locally |
-| **Lint** | `npm run lint` | Runs ESLint across the codebase |
-| **Format** | `npm run format` | Runs Prettier to format source files |
-| **Test** | `npm run test` | Runs the Vitest test suite |
-| **Test (Watch)** | `npm run test:watch` | Runs tests in watch mode |
+Crafted with dedication for **HackShift 2026**.
+
+**Made with ❤️ by Broken Table**
+* **Repository:** [sparshagarwal0411/alumni-collective](https://github.com/sparshagarwal0411/alumni-collective)
 
 ---
 
-## Routing Conventions
-
-This project utilizes [TanStack Start & TanStack Router](https://tanstack.com/router) with file-based routing:
-
-- All routes are defined inside `src/routes/`.
-- Dynamic parameters use bare `$` syntax (e.g., `alumni.$id.tsx` for `/alumni/:id`).
-- Root layout is managed exclusively in `src/routes/__root.tsx`.
-- The `src/routeTree.gen.ts` file is generated automatically by Vite during development. Do not edit it manually.
-
----
-
-## Lovable Sync
-
-This project is connected with [Lovable](https://lovable.dev).
-
-- Commits pushed to the connected branch automatically sync back to Lovable.
-- Avoid rewriting published Git history (`git push --force`, rebasing, or squashing pushed commits) to maintain project continuity with Lovable.
-
----
-
-## License
-
-This project is distributed under the MIT License. See [LICENSE](LICENSE) for more information.
+## 📄 License
+This project is licensed under the MIT License.
