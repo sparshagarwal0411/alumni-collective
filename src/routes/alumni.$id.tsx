@@ -314,14 +314,14 @@ function ProfilePage() {
                   </div>
                 </div>
               </div>
-              <button
+              {/* <button
                 type="button"
                 onClick={() => setIsMentorshipModalOpen(false)}
                 className="text-muted-foreground hover:text-foreground text-sm font-mono p-1"
                 aria-label="Close dialog"
               >
                 <X className="h-5 w-5" />
-              </button>
+              </button> */}
             </div>
 
             {sessionSubmitted ? (
