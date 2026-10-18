@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Building2 } from "lucide-react";
+import { Building2, Code2, Cpu, Layers } from "lucide-react";
 import campus from "@/assets/campus.jpg";
 import aanyaPortrait from "@/assets/alumni/aanya-iyer.jpg";
 import arjunPortrait from "@/assets/alumni/arjun-nair.jpg";
@@ -96,68 +96,320 @@ function Home() {
         </dl>
       </Section>
 
-      {/* <Section className="mt-28">
-        <div className="flex flex-wrap items-end justify-between gap-4 border-b border-foreground pb-3">
-          <div>
-            <p className="eyebrow">Microtasks · Proof of work</p>
-            <h2 className="mt-2 text-3xl">Small favours, permanent credit.</h2>
-          </div>
-          <Link to="/tasks" className="link-u text-sm">
-            Browse all microtasks
-          </Link>
+      {/* ==========================================================================
+          Where We Work (Flowing Right to Left in Motion)
+          ========================================================================== */}
+      <section className="mt-28 overflow-hidden">
+        <div className="mx-auto max-w-6xl px-5 text-center md:px-8">
+          <p className="eyebrow">The Global Hiring Footprint</p>
+          <h2 className="mt-3 font-display text-4xl text-accent md:text-5xl">
+            Where We Work
+          </h2>
+          <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-ink-soft md:text-base">
+            Ashwood alumni are powering the world's most influential companies, frontier labs, and institutions.
+          </p>
         </div>
-        <div className="grid gap-6 pt-8 md:grid-cols-3">
-          {(tasks.data ?? [])
-            .filter((task) => task.status === "open")
-            .slice(0, 3)
-            .map((task) => (
-              <article key={task.id} className="flex h-full flex-col border border-rule bg-paper p-5">
-                <div className="flex items-center justify-between gap-3">
-                  <span className="eyebrow">{task.hours} hr{task.hours === 1 ? "" : "s"} · +{Number(task.hours) * 5} pts</span>
-                  <span className="border border-accent/40 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-accent">
-                    Open
+
+        {/* Marquee Container with Gradient Edge Fades */}
+        <div className="marquee-group relative mt-12 w-full space-y-4 py-4">
+          {/* Left & Right Gradient Fades */}
+          <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-20 bg-gradient-to-r from-background via-background/90 to-transparent md:w-36" />
+          <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-20 bg-gradient-to-l from-background via-background/90 to-transparent md:w-36" />
+
+          {/* Row 1: Flowing Right to Left (40s) */}
+          <div className="flex overflow-hidden">
+            <div className="animate-marquee-flow flex items-center gap-4">
+              {[
+                ...[
+                  "Headlamp", "IndiGo", "Kapstan", "Macquarie", "MongoDB",
+                  "NatWest", "OLX", "Quantizer", "Uber", "ARM", "Anthropic", "Stripe"
+                ],
+                ...[
+                  "Headlamp", "IndiGo", "Kapstan", "Macquarie", "MongoDB",
+                  "NatWest", "OLX", "Quantizer", "Uber", "ARM", "Anthropic", "Stripe"
+                ],
+              ].map((company, i) => (
+                <div
+                  key={`r1-${company}-${i}`}
+                  className="flex shrink-0 items-center gap-3 rounded-lg border border-rule/70 bg-card px-4 py-2.5 shadow-xs transition-all duration-200 hover:scale-[1.03] hover:border-accent hover:shadow-md select-none"
+                >
+                  <CompanyLogo company={company} size="sm" className="h-6 w-6 shrink-0" />
+                  <span className="text-sm font-medium tracking-tight text-foreground whitespace-nowrap">
+                    {company}
                   </span>
                 </div>
-                <h3 className="mt-6 font-display text-2xl leading-snug">{task.title}</h3>
-                <p className="mt-3 flex-1 text-sm leading-relaxed text-ink-soft">{task.description}</p>
-                <Link to="/tasks" className="mt-6 text-sm text-foreground hover:text-accent">
-                  Claim a task →
-                </Link>
-              </article>
-            ))}
-        </div>
-      </Section> */}
-
-      {/* <Section className="mt-28">
-        <div className="flex flex-wrap items-end justify-between gap-4 border-b border-foreground pb-3">
-          <div>
-            <p className="eyebrow">The hiring register</p>
-            <h2 className="mt-2 text-3xl">Past recruiters of our alumni</h2>
-          </div>
-          <p className="max-w-sm text-right text-sm text-ink-soft">Where Ashwood graduates have built what comes next.</p>
-        </div>
-        <div className="mt-8 px-10 md:px-12">
-          <Carousel opts={{ align: "start", loop: true }} aria-label="Past recruiters of Ashwood alumni">
-            <CarouselContent className="-ml-3">
-              {recruiterPartners.map((company) => (
-                <CarouselItem key={company.name} className="basis-full pl-3 sm:basis-1/2 md:basis-1/3">
-                  <article className="h-full border border-rule bg-paper p-5 transition-colors hover:border-accent">
-                    <div className="flex items-start justify-between gap-4">
-                      <CompanyLogo company={company.name} size="lg" className="h-12 w-12 shadow-xs" />
-                      <Building2 className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
-                    </div>
-                    <h3 className="mt-8 font-display text-2xl">{company.name}</h3>
-                    <p className="mt-1 text-sm text-accent">{company.focus}</p>
-                    <p className="mt-5 border-t border-rule pt-3 text-xs leading-relaxed text-ink-soft">{company.alumni}</p>
-                  </article>
-                </CarouselItem>
               ))}
-            </CarouselContent>
-            <CarouselPrevious className="-left-10 md:-left-12" aria-label="Previous recruiter" />
-            <CarouselNext className="-right-10 md:-right-12" aria-label="Next recruiter" />
-          </Carousel>
+            </div>
+          </div>
+
+          {/* Row 2: Flowing Right to Left (32s - Faster) */}
+          <div className="flex overflow-hidden">
+            <div className="animate-marquee-flow-fast flex items-center gap-4">
+              {[
+                ...[
+                  "GoDaddy", "Hike", "Innov8", "Kimball", "Magicpin", "Monotype",
+                  "Nexalis", "OYO", "Rippling", "Visa", "Adobe", "Linear"
+                ],
+                ...[
+                  "GoDaddy", "Hike", "Innov8", "Kimball", "Magicpin", "Monotype",
+                  "Nexalis", "OYO", "Rippling", "Visa", "Adobe", "Linear"
+                ],
+              ].map((company, i) => (
+                <div
+                  key={`r2-${company}-${i}`}
+                  className="flex shrink-0 items-center gap-3 rounded-lg border border-rule/70 bg-card px-4 py-2.5 shadow-xs transition-all duration-200 hover:scale-[1.03] hover:border-accent hover:shadow-md select-none"
+                >
+                  <CompanyLogo company={company} size="sm" className="h-6 w-6 shrink-0" />
+                  <span className="text-sm font-medium tracking-tight text-foreground whitespace-nowrap">
+                    {company}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Row 3: Flowing Right to Left (48s - Slower) */}
+          <div className="flex overflow-hidden">
+            <div className="animate-marquee-flow-slow flex items-center gap-4">
+              {[
+                ...[
+                  "Humantic AI", "Intuit", "Leena AI", "Material+", "Morgan Stanley",
+                  "NVIDIA", "PayPal", "Salesforce", "Walmart", "Bechtel", "Tesla"
+                ],
+                ...[
+                  "Humantic AI", "Intuit", "Leena AI", "Material+", "Morgan Stanley",
+                  "NVIDIA", "PayPal", "Salesforce", "Walmart", "Bechtel", "Tesla"
+                ],
+              ].map((company, i) => (
+                <div
+                  key={`r3-${company}-${i}`}
+                  className="flex shrink-0 items-center gap-3 rounded-lg border border-rule/70 bg-card px-4 py-2.5 shadow-xs transition-all duration-200 hover:scale-[1.03] hover:border-accent hover:shadow-md select-none"
+                >
+                  <CompanyLogo company={company} size="sm" className="h-6 w-6 shrink-0" />
+                  <span className="text-sm font-medium tracking-tight text-foreground whitespace-nowrap">
+                    {company}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Row 4: Flowing Right to Left (38s) */}
+          <div className="flex overflow-hidden">
+            <div className="animate-marquee-flow flex items-center gap-4">
+              {[
+                ...[
+                  "Gartner", "Google", "IBM", "JPMorgan Chase", "LimeRoad",
+                  "Microsoft", "Khatabook", "Nykaa", "PharmEasy", "Sprinklr", "ZuPay", "Zerodha"
+                ],
+                ...[
+                  "Gartner", "Google", "IBM", "JPMorgan Chase", "LimeRoad",
+                  "Microsoft", "Khatabook", "Nykaa", "PharmEasy", "Sprinklr", "ZuPay", "Zerodha"
+                ],
+              ].map((company, i) => (
+                <div
+                  key={`r4-${company}-${i}`}
+                  className="flex shrink-0 items-center gap-3 rounded-lg border border-rule/70 bg-card px-4 py-2.5 shadow-xs transition-all duration-200 hover:scale-[1.03] hover:border-accent hover:shadow-md select-none"
+                >
+                  <CompanyLogo company={company} size="sm" className="h-6 w-6 shrink-0" />
+                  <span className="text-sm font-medium tracking-tight text-foreground whitespace-nowrap">
+                    {company}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
-      </Section> */}
+
+        {/* Directory & Opportunity Link */}
+        <div className="mx-auto mt-6 flex justify-center">
+          <Link
+            to="/communities"
+            search={{ tab: "companies" }}
+            className="inline-flex items-center gap-2 rounded-full border border-rule bg-paper/80 px-4 py-1.5 text-xs font-medium text-ink-soft transition-colors hover:border-accent hover:text-accent"
+          >
+            <span>Explore all 50+ alumni company chapters & houses</span>
+            <span aria-hidden="true">→</span>
+          </Link>
+        </div>
+      </section>
+
+      {/* ==========================================================================
+          Career Domains (2x2 Grid with Themed Icons & Exact Alumni Copy)
+          ========================================================================== */}
+      <Section className="mt-28">
+        <div className="text-center">
+          <p className="eyebrow">Industry Footprint</p>
+          <h2 className="mt-3 font-display text-4xl text-accent md:text-5xl">
+            Career Domains
+          </h2>
+          <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-ink-soft md:text-base">
+            Ashwood alumni demonstrate exceptional versatility across diverse industries and roles
+          </p>
+        </div>
+
+        <div className="mt-12 grid gap-6 md:grid-cols-2">
+          {/* Card 1: Tech */}
+          <div className="group flex flex-col justify-between rounded-2xl border border-rule/80 bg-card p-7 shadow-xs transition-all duration-300 hover:border-accent hover:shadow-md">
+            <div>
+              <div className="flex items-start gap-4">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-accent/20 bg-accent/10 text-accent transition-transform duration-300 group-hover:scale-105">
+                  <Code2 className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="font-display text-2xl font-semibold tracking-tight text-foreground group-hover:text-accent transition-colors">
+                    Tech
+                  </h3>
+                  <p className="mt-2 text-sm leading-relaxed text-ink-soft">
+                    Ashwood graduates excel in software engineering, AI/ML, cloud architecture, and product development at leading tech giants and innovative startups worldwide.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 border-t border-rule/50 pt-5">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <span className="eyebrow text-[10px]">Pacesetters:</span>
+                  <div className="flex items-center gap-1.5">
+                    {["Google", "Anthropic", "Stripe", "Microsoft", "Meta"].map((co) => (
+                      <CompanyLogo key={co} company={co} size="xs" className="h-5 w-5" />
+                    ))}
+                  </div>
+                </div>
+                <Link
+                  to="/directory"
+                  search={{ q: "Tech" }}
+                  className="font-mono text-xs text-accent hover:underline inline-flex items-center gap-1"
+                >
+                  <span>480+ Alumni</span>
+                  <span>→</span>
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 2: Core */}
+          <div className="group flex flex-col justify-between rounded-2xl border border-rule/80 bg-card p-7 shadow-xs transition-all duration-300 hover:border-accent hover:shadow-md">
+            <div>
+              <div className="flex items-start gap-4">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-accent/20 bg-accent/10 text-accent transition-transform duration-300 group-hover:scale-105">
+                  <Cpu className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="font-display text-2xl font-semibold tracking-tight text-foreground group-hover:text-accent transition-colors">
+                    Core
+                  </h3>
+                  <p className="mt-2 text-sm leading-relaxed text-ink-soft">
+                    Our alumni lead breakthrough innovations in semiconductor design, electronics, hardware engineering, and advanced manufacturing across global technology firms.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 border-t border-rule/50 pt-5">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <span className="eyebrow text-[10px]">Pacesetters:</span>
+                  <div className="flex items-center gap-1.5">
+                    {["NVIDIA", "ARM", "Apple", "Synapse Robotics"].map((co) => (
+                      <CompanyLogo key={co} company={co} size="xs" className="h-5 w-5" />
+                    ))}
+                  </div>
+                </div>
+                <Link
+                  to="/directory"
+                  search={{ q: "Hardware" }}
+                  className="font-mono text-xs text-accent hover:underline inline-flex items-center gap-1"
+                >
+                  <span>220+ Alumni</span>
+                  <span>→</span>
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 3: Non-Tech */}
+          <div className="group flex flex-col justify-between rounded-2xl border border-rule/80 bg-card p-7 shadow-xs transition-all duration-300 hover:border-accent hover:shadow-md">
+            <div>
+              <div className="flex items-start gap-4">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-accent/20 bg-accent/10 text-accent transition-transform duration-300 group-hover:scale-105">
+                  <Building2 className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="font-display text-2xl font-semibold tracking-tight text-foreground group-hover:text-accent transition-colors">
+                    Non-Tech
+                  </h3>
+                  <p className="mt-2 text-sm leading-relaxed text-ink-soft">
+                    Ashwood alumni drive strategic initiatives in consulting, finance, policy, and education, leveraging their strong analytical foundation to create impact.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 border-t border-rule/50 pt-5">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <span className="eyebrow text-[10px]">Pacesetters:</span>
+                  <div className="flex items-center gap-1.5">
+                    {["JPMorgan Chase", "Peak XV Partners", "Latham & Watkins", "Citadel"].map((co) => (
+                      <CompanyLogo key={co} company={co} size="xs" className="h-5 w-5" />
+                    ))}
+                  </div>
+                </div>
+                <Link
+                  to="/directory"
+                  search={{ q: "Economics" }}
+                  className="font-mono text-xs text-accent hover:underline inline-flex items-center gap-1"
+                >
+                  <span>310+ Alumni</span>
+                  <span>→</span>
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 4: Hybrid */}
+          <div className="group flex flex-col justify-between rounded-2xl border border-rule/80 bg-card p-7 shadow-xs transition-all duration-300 hover:border-accent hover:shadow-md">
+            <div>
+              <div className="flex items-start gap-4">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-accent/20 bg-accent/10 text-accent transition-transform duration-300 group-hover:scale-105">
+                  <Layers className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="font-display text-2xl font-semibold tracking-tight text-foreground group-hover:text-accent transition-colors">
+                    Hybrid
+                  </h3>
+                  <p className="mt-2 text-sm leading-relaxed text-ink-soft">
+                    Alumni thrive in organizations where technical expertise meets business acumen, bridging technology and strategy in dynamic growth environments.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 border-t border-rule/50 pt-5">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <span className="eyebrow text-[10px]">Pacesetters:</span>
+                  <div className="flex items-center gap-1.5">
+                    {["Uber", "Razorpay", "Walmart", "Salesforce", "Intuit"].map((co) => (
+                      <CompanyLogo key={co} company={co} size="xs" className="h-5 w-5" />
+                    ))}
+                  </div>
+                </div>
+                <Link
+                  to="/directory"
+                  search={{ q: "Product" }}
+                  className="font-mono text-xs text-accent hover:underline inline-flex items-center gap-1"
+                >
+                  <span>340+ Alumni</span>
+                  <span>→</span>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Section>
 
       <Section className="mt-28">
         <div className="flex items-baseline justify-between border-b border-foreground pb-3">
