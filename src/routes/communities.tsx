@@ -135,33 +135,30 @@ function CommunitiesPage() {
           <button
             type="button"
             onClick={() => setTab("societies")}
-            className={`px-3 py-1.5 transition-colors ${
-              tab === "societies"
-                ? "bg-primary text-primary-foreground"
-                : "border border-rule hover:border-foreground"
-            }`}
+            className={`px-3 py-1.5 transition-colors ${tab === "societies"
+              ? "bg-primary text-primary-foreground"
+              : "border border-rule hover:border-foreground"
+              }`}
           >
             Campus societies ({societies.length})
           </button>
           <button
             type="button"
             onClick={() => setTab("companies")}
-            className={`px-3 py-1.5 transition-colors ${
-              tab === "companies"
-                ? "bg-primary text-primary-foreground"
-                : "border border-rule hover:border-foreground"
-            }`}
+            className={`px-3 py-1.5 transition-colors ${tab === "companies"
+              ? "bg-primary text-primary-foreground"
+              : "border border-rule hover:border-foreground"
+              }`}
           >
             Where alumni work ({companies.length})
           </button>
           <button
             type="button"
             onClick={() => setTab("mentorship")}
-            className={`px-3 py-1.5 transition-colors ${
-              tab === "mentorship"
-                ? "bg-primary text-primary-foreground font-semibold"
-                : "border border-rule hover:border-foreground"
-            }`}
+            className={`px-3 py-1.5 transition-colors ${tab === "mentorship"
+              ? "bg-primary text-primary-foreground font-semibold"
+              : "border border-rule hover:border-foreground"
+              }`}
           >
             Mentorship ({people.length})
           </button>
@@ -320,11 +317,10 @@ function CommunitiesPage() {
 
                         <div className="shrink-0">
                           <span
-                            className={`inline-block px-3 py-1 font-mono text-[11px] uppercase tracking-wider border ${
-                              req.status === "accepted"
-                                ? "border-accent text-accent bg-accent/5 font-semibold"
-                                : "border-rule bg-paper text-muted-foreground"
-                            }`}
+                            className={`inline-block px-3 py-1 font-mono text-[11px] uppercase tracking-wider border ${req.status === "accepted"
+                              ? "border-accent text-accent bg-accent/5 font-semibold"
+                              : "border-rule bg-paper text-muted-foreground"
+                              }`}
                           >
                             {req.status}
                           </span>
@@ -594,21 +590,31 @@ function CommunitiesPage() {
         )}
 
         {/* Propose a community / footer card */}
+
         <div className="mt-20 grid items-center gap-8 border border-rule bg-paper p-8 md:grid-cols-12 md:p-12">
           <div className="space-y-2 md:col-span-7">
             <span className="eyebrow">Start a chapter or mentorship circle</span>
-            <h3 className="font-display text-3xl">A city, a company, a society — write in.</h3>
+
+            <h3 className="font-display text-3xl">
+              A city, a company, a society — write in.
+            </h3>
+
             <p className="text-sm text-ink-soft">
               If your firm, old club, or specialized discipline is missing from this list, the
               Association will add a roll as soon as two alumni ask for it.
             </p>
           </div>
-          <div className="md:col-span-5">
-            <Link to="/auth" className="inline-block bg-accent px-5 py-2.5 text-sm text-accent-foreground hover:bg-primary">
+
+          <div className="md:col-span-5 md:pl-[40%]">
+            <Link
+              to="/auth"
+              className="inline-block bg-accent px-5 py-2.5 text-sm text-accent-foreground hover:bg-primary"
+            >
               Propose a community
             </Link>
           </div>
         </div>
+
       </Section>
     </>
   );
