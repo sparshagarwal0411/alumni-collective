@@ -40,6 +40,11 @@ export interface Microtask {
   claimed_by: string | null;
   is_sample: boolean;
   created_at: string;
+  submission_url?: string;
+  submission_file_name?: string;
+  submission_file_size?: string;
+  submission_note?: string;
+  submitted_at?: string;
 }
 
 export interface Fund {

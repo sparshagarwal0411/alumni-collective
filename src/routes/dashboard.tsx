@@ -41,6 +41,7 @@ import {
   RefreshCw,
   Settings,
 } from "lucide-react";
+import { MicrotasksManager } from "@/components/microtasks/MicrotasksManager";
 
 export const Route = createFileRoute("/dashboard")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -155,7 +156,7 @@ export function UnifiedDashboardPage() {
   const activePersona: AppRole = currentRole || "student";
 
   // Dashboard active section tab
-  const dashboardTabs = ["overview", "messages", "seeking", "posting", "mentorship", "folio", "account"] as const;
+  const dashboardTabs = ["overview", "messages", "seeking", "posting", "mentorship", "microtasks", "folio", "account"] as const;
   type DashboardTab = (typeof dashboardTabs)[number];
   const requestedDashboardTab = dashboardTabs.includes(requestedTab as DashboardTab)
     ? (requestedTab as DashboardTab)
@@ -582,7 +583,7 @@ export function UnifiedDashboardPage() {
                 {activePersona === "faculty" && <Landmark className="h-3.5 w-3.5 text-accent" />}
                 {activePersona === "alumni" && <Briefcase className="h-3.5 w-3.5 text-accent" />}
                 <span className="font-semibold text-accent uppercase">{activePersona}</span>
-                <span className="text-muted-foreground">· Locked to login role</span>
+                {/* <span className="text-muted-foreground">· Locked to login role</span> */}
               </div>
             </div>
           )}
@@ -702,6 +703,17 @@ export function UnifiedDashboardPage() {
             >
               <UserCheck className="h-3.5 w-3.5" />
               Mentorship & Office Hours
+            </button>
+            <button
+              type="button"
+              onClick={() => selectTab("microtasks")}
+              className={`flex items-center gap-1.5 px-4 py-2.5 border-b-2 font-semibold transition-colors cursor-pointer ${activeTab === "microtasks"
+                ? "border-accent text-accent bg-accent/5"
+                : "border-transparent text-muted-foreground hover:text-foreground hover:border-rule"
+                }`}
+            >
+              <Award className="h-3.5 w-3.5" />
+              Microtasks & Proof of Work
             </button>
             <button
               type="button"
@@ -1358,6 +1370,27 @@ export function UnifiedDashboardPage() {
             </div>
           )
         }
+
+        {/* TAB: MICROTASKS & PROOF OF WORK */}
+        {activeTab === "microtasks" && (
+          <div className="space-y-6 animate-in fade-in duration-200">
+            <MicrotasksManager
+              rolePerspective={activePersona}
+              title={
+                activePersona === "student"
+                  ? "Student Microtasks & Deliverables"
+                  : activePersona === "alumni"
+                  ? "Alumni Commissioned Work & Student Deliverables"
+                  : "Faculty Research Microtasks & Reviews"
+              }
+              description={
+                activePersona === "student"
+                  ? "Claim microtasks from alumni and submit deliverables via Google Drive or file upload to earn 1 binary credibility point per verified task."
+                  : "Assign work to students with specific deliverable requirements. Verified completions award 1 binary credibility point to the student."
+              }
+            />
+          </div>
+        )}
 
         {/* TAB 6: DOSSIER & CREDENTIALS HUB */}
         {activeTab === "folio" && <StudentProfilePage />}

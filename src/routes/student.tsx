@@ -8,6 +8,7 @@ import {
   type Project,
 } from "@/lib/studentProfile";
 import { toast } from "sonner";
+import { MicrotasksManager } from "@/components/microtasks/MicrotasksManager";
 import {
   FileText,
   Upload,
@@ -680,6 +681,15 @@ export function StudentProfilePage() {
                   ))}
                 </ul>
               </div>
+            </div>
+
+            {/* Microtasks & Proof-of-Work Deliverables Section */}
+            <div className="border-t border-rule pt-10">
+              <MicrotasksManager
+                title="Microtask Work & Proof-of-Work Deliverables"
+                description="Ashwood verified microtasks. Claim tasks from alumni and faculty, and upload your work via Google Drive link or direct file upload to earn binary credibility points (1 point per verified deliverable)."
+                rolePerspective="student"
+              />
             </div>
           </div>
         )}

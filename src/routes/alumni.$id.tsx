@@ -7,6 +7,7 @@ import { profileQuery, tasksQuery } from "@/lib/queries";
 import { getAlumniPortrait } from "@/lib/portraits";
 import { toast } from "sonner";
 import { Calendar, CheckCircle2, Clock, MessageSquare, Send, UserCheck, X } from "lucide-react";
+import { MicrotasksManager } from "@/components/microtasks/MicrotasksManager";
 
 export const Route = createFileRoute("/alumni/$id")({
   head: () => ({
@@ -185,35 +186,13 @@ function ProfilePage() {
             )}
 
             {/* Related Microtasks / Ledger */}
-            <div className="border-t border-rule pt-6">
-              <div className="flex items-baseline justify-between mb-4">
-                <h2 className="eyebrow">Microtask Ledger</h2>
-                <Link to="/tasks" className="link-u text-xs">
-                  All microtasks →
-                </Link>
-              </div>
-
-              {userTasks.length === 0 ? (
-                <p className="text-sm italic text-muted-foreground">
-                  No public microtasks currently associated with this profile.
-                </p>
-              ) : (
-                <ul className="divide-y divide-rule border-y border-rule">
-                  {userTasks.map((t) => (
-                    <li key={t.id} className="py-4 flex items-center justify-between gap-4">
-                      <div>
-                        <p className="font-medium text-foreground">{t.title}</p>
-                        <p className="text-xs text-ink-soft mt-1">
-                          {t.hours} hour{t.hours === 1 ? "" : "s"} · Status: {t.status}
-                        </p>
-                      </div>
-                      <Link to="/tasks" className="link-u text-xs">
-                        View
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              )}
+            <div className="border-t border-rule pt-8">
+              <MicrotasksManager
+                profileId={p.id}
+                rolePerspective="alumni"
+                title={`${p.full_name}'s Microtask Ledger`}
+                description={`Commissioned work and research reviews offered by ${p.full_name}. Verified completion awards 1 binary point.`}
+              />
             </div>
           </div>
 

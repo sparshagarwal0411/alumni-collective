@@ -296,11 +296,29 @@ export async function claimExistingMicrotask(
   return { success: true };
 }
 
-export async function completeExistingMicrotask(taskId: string): Promise<{ success: boolean }> {
+export async function completeExistingMicrotask(
+  taskId: string,
+  submission?: {
+    submission_url?: string;
+    submission_file_name?: string;
+    submission_file_size?: string;
+    submission_note?: string;
+  }
+): Promise<{ success: boolean }> {
   // 1. Update local
   const current = getLocalMicrotasks();
   const updated = current.map((t) =>
-    t.id === taskId ? { ...t, status: "completed" as const } : t
+    t.id === taskId
+      ? {
+          ...t,
+          status: "completed" as const,
+          submission_url: submission?.submission_url || t.submission_url,
+          submission_file_name: submission?.submission_file_name || t.submission_file_name,
+          submission_file_size: submission?.submission_file_size || t.submission_file_size,
+          submission_note: submission?.submission_note || t.submission_note,
+          submitted_at: new Date().toISOString(),
+        }
+      : t
   );
   saveLocalMicrotasks(updated);
 

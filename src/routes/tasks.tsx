@@ -10,7 +10,7 @@ import {
   completeExistingMicrotask,
 } from "@/lib/supabaseSync";
 import { toast } from "sonner";
-import { Plus, CheckCircle2, Clock, Award, ShieldCheck, Filter, ExternalLink, ArrowRight } from "lucide-react";
+import { Plus, CheckCircle2, Clock, Award, ShieldCheck, Filter, ExternalLink, ArrowRight, Upload, Link2, File, Check } from "lucide-react";
 
 export const Route = createFileRoute("/tasks")({
   head: () => ({
@@ -42,12 +42,14 @@ function TasksPage() {
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const [newDescription, setNewDescription] = useState("");
-  const [newHours, setNewHours] = useState<number>(1.0);
   const [isPosting, setIsPosting] = useState(false);
 
   // Claim & Submit proof modals
   const [activeSubmitModal, setActiveSubmitModal] = useState<string | null>(null);
+  const [submissionMethod, setSubmissionMethod] = useState<"drive" | "file">("drive");
   const [submissionUrl, setSubmissionUrl] = useState("");
+  const [submissionFile, setSubmissionFile] = useState<File | null>(null);
+  const [submissionNote, setSubmissionNote] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const filteredTasks = useMemo(() => {
@@ -83,15 +85,14 @@ function TasksPage() {
       await createNewMicrotask({
         title: newTitle.trim(),
         description: newDescription.trim(),
-        hours: newHours,
+        hours: 1, // fixed at 1 for binary point system
         posted_by: user?.id || "current-user",
       });
 
-      toast.success("Microtask request published to the live register!");
+      toast.success("Microtask published! Worth 1 credibility point on completion.");
       setIsPostModalOpen(false);
       setNewTitle("");
       setNewDescription("");
-      setNewHours(1.0);
       await queryClient.invalidateQueries({ queryKey: ["tasks"] });
     } catch (err: any) {
       toast.error(`Could not post microtask: ${err.message}`);
@@ -113,13 +114,28 @@ function TasksPage() {
   const handleSubmitProof = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!activeSubmitModal) return;
+    if (submissionMethod === "drive" && !submissionUrl.trim()) {
+      toast.error("Please provide your Google Drive link or deliverable URL.");
+      return;
+    }
+    if (submissionMethod === "file" && !submissionFile) {
+      toast.error("Please select a deliverable file to upload.");
+      return;
+    }
 
     setIsSubmitting(true);
     try {
-      await completeExistingMicrotask(activeSubmitModal);
-      toast.success("Proof-of-work submitted! Relational credibility points credited to your record.");
+      await completeExistingMicrotask(activeSubmitModal, {
+        submission_url: submissionMethod === "drive" ? submissionUrl.trim() : undefined,
+        submission_file_name: submissionMethod === "file" && submissionFile ? submissionFile.name : undefined,
+        submission_file_size: submissionMethod === "file" && submissionFile ? `${Math.round(submissionFile.size / 1024)} KB` : undefined,
+        submission_note: submissionNote.trim() || undefined,
+      });
+      toast.success("✓ Proof-of-work submitted! +1 credibility point credited to your record.");
       setActiveSubmitModal(null);
       setSubmissionUrl("");
+      setSubmissionFile(null);
+      setSubmissionNote("");
       await queryClient.invalidateQueries({ queryKey: ["tasks"] });
     } catch (err: any) {
       toast.error(`Error submitting deliverable: ${err.message}`);
@@ -244,7 +260,7 @@ function TasksPage() {
               {filteredTasks.map((task) => {
                 const poster = profiles.find((p) => p.id === task.posted_by);
                 const claimant = profiles.find((p) => p.id === task.claimed_by);
-                const points = Math.round((Number(task.hours) || 1) * 10);
+                const isCompleted = task.status === "completed";
 
                 return (
                   <article
@@ -255,7 +271,7 @@ function TasksPage() {
                       <div className="flex items-center justify-between gap-2">
                         <span className="font-mono text-xs uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                           <Clock className="h-3.5 w-3.5 text-accent" />
-                          Est. {task.hours} hr{task.hours === 1 ? "" : "s"} · +{points} Relational Pts
+                          {task.status === "completed" ? "+1 Point Earned" : "Worth 1 Point on Completion"}
                         </span>
                         <span
                           className={`font-mono text-[10px] uppercase px-2 py-0.5 border font-semibold ${
@@ -278,6 +294,43 @@ function TasksPage() {
                       <p className="text-sm text-ink-soft leading-relaxed">
                         {task.description}
                       </p>
+
+                      {/* Deliverable Proof Badge */}
+                      {(task.submission_url || task.submission_file_name) && (
+                        <div className="mt-2 rounded border border-accent/20 bg-accent/5 p-2.5 font-mono text-xs space-y-1">
+                          <p className="text-accent font-semibold flex items-center gap-1 text-[11px]">
+                            <CheckCircle2 className="h-3.5 w-3.5" /> Submitted Deliverable:
+                          </p>
+                          {task.submission_url && (
+                            <a
+                              href={task.submission_url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1 text-accent hover:underline text-[11px] truncate max-w-full"
+                            >
+                              <Link2 className="h-3 w-3" />
+                              {task.submission_url.includes("drive.google.com")
+                                ? "Google Drive Work File"
+                                : task.submission_url}
+                              <ExternalLink className="h-2.5 w-2.5" />
+                            </a>
+                          )}
+                          {task.submission_file_name && (
+                            <div className="inline-flex items-center gap-1.5 text-foreground text-[11px]">
+                              <File className="h-3 w-3 text-accent" />
+                              <span>{task.submission_file_name}</span>
+                              {task.submission_file_size && (
+                                <span className="text-muted-foreground">({task.submission_file_size})</span>
+                              )}
+                            </div>
+                          )}
+                          {task.submission_note && (
+                            <p className="text-[10px] text-ink-soft italic pt-1 border-t border-accent/10">
+                              "{task.submission_note}"
+                            </p>
+                          )}
+                        </div>
+                      )}
                     </div>
 
                     <div className="border-t border-rule pt-4 flex items-center justify-between gap-4 text-xs">
@@ -365,17 +418,15 @@ function TasksPage() {
                 </div>
 
                 <div>
-                  <label className="eyebrow block mb-1">Estimated Duration (Hours)</label>
+                  <label className="eyebrow block mb-1">Estimated Turnaround & Reward</label>
                   <select
-                    value={newHours}
-                    onChange={(e) => setNewHours(Number(e.target.value))}
-                    className="w-full border border-rule bg-paper p-2.5 text-xs focus:border-accent focus:outline-none"
+                    className="w-full border border-rule bg-paper p-2.5 text-xs focus:border-accent focus:outline-none font-mono"
+                    defaultValue="1"
                   >
-                    <option value={0.5}>30 minutes (+5 points)</option>
-                    <option value={1.0}>1 hour (+10 points)</option>
-                    <option value={1.5}>1.5 hours (+15 points)</option>
-                    <option value={2.0}>2 hours (+20 points)</option>
-                    <option value={3.0}>3 hours (+30 points)</option>
+                    <option value="1">1 hour (Worth 1 Binary Point)</option>
+                    <option value="2">2 hours (Worth 1 Binary Point)</option>
+                    <option value="0.5">30 minutes (Worth 1 Binary Point)</option>
+                    <option value="3">Half day (Worth 1 Binary Point)</option>
                   </select>
                 </div>
 
@@ -435,15 +486,102 @@ function TasksPage() {
 
               <form onSubmit={handleSubmitProof} className="mt-5 space-y-4">
                 <div>
-                  <label className="eyebrow block mb-1">Deliverable URL *</label>
-                  <input
-                    type="url"
-                    required
-                    placeholder="https://github.com/... or https://docs.google.com/..."
-                    value={submissionUrl}
-                    onChange={(e) => setSubmissionUrl(e.target.value)}
-                    className="w-full border border-rule bg-paper p-3 text-xs focus:border-accent focus:outline-none"
+                  <label className="eyebrow block mb-1.5">Deliverable Submission Method</label>
+                  <div className="grid grid-cols-2 gap-2 font-mono text-xs">
+                    <button
+                      type="button"
+                      onClick={() => setSubmissionMethod("drive")}
+                      className={`flex items-center justify-center gap-1.5 p-2.5 border transition-colors cursor-pointer ${
+                        submissionMethod === "drive"
+                          ? "border-accent bg-accent/10 text-accent font-semibold"
+                          : "border-rule bg-paper text-muted-foreground hover:border-foreground"
+                      }`}
+                    >
+                      <Link2 className="h-3.5 w-3.5" />
+                      Google Drive / Link
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSubmissionMethod("file")}
+                      className={`flex items-center justify-center gap-1.5 p-2.5 border transition-colors cursor-pointer ${
+                        submissionMethod === "file"
+                          ? "border-accent bg-accent/10 text-accent font-semibold"
+                          : "border-rule bg-paper text-muted-foreground hover:border-foreground"
+                      }`}
+                    >
+                      <Upload className="h-3.5 w-3.5" />
+                      Upload File
+                    </button>
+                  </div>
+                </div>
+
+                {submissionMethod === "drive" && (
+                  <div className="space-y-1.5 animate-in fade-in duration-150">
+                    <label className="eyebrow block">Google Drive or Deliverable URL *</label>
+                    <input
+                      type="url"
+                      required={submissionMethod === "drive"}
+                      placeholder="https://drive.google.com/file/d/... or https://github.com/..."
+                      value={submissionUrl}
+                      onChange={(e) => setSubmissionUrl(e.target.value)}
+                      className="w-full border border-rule bg-paper p-3 text-xs focus:border-accent focus:outline-none"
+                    />
+                    <p className="text-[10px] text-muted-foreground font-mono">
+                      Share a public Google Drive folder, doc, GitHub PR, Figma, or Loom video link.
+                    </p>
+                  </div>
+                )}
+
+                {submissionMethod === "file" && (
+                  <div className="space-y-1.5 animate-in fade-in duration-150">
+                    <label className="eyebrow block">Upload Deliverable File *</label>
+                    <div className="border border-dashed border-rule bg-paper p-4 text-center hover:border-accent transition-colors">
+                      <input
+                        type="file"
+                        id="modalDeliverableFile"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) setSubmissionFile(file);
+                        }}
+                      />
+                      <label htmlFor="modalDeliverableFile" className="cursor-pointer flex flex-col items-center justify-center space-y-2">
+                        <Upload className="h-6 w-6 text-accent" />
+                        {submissionFile ? (
+                          <div className="font-mono text-xs">
+                            <p className="font-semibold text-foreground flex items-center gap-1 justify-center">
+                              <Check className="h-3.5 w-3.5 text-accent" />
+                              {submissionFile.name}
+                            </p>
+                            <p className="text-[10px] text-muted-foreground mt-0.5">
+                              {Math.round(submissionFile.size / 1024)} KB · Click to change file
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="font-mono text-xs">
+                            <p className="font-semibold text-foreground">Click to select deliverable file</p>
+                            <p className="text-[10px] text-muted-foreground mt-0.5">PDF, ZIP, DOCX, Code, or image artifacts</p>
+                          </div>
+                        )}
+                      </label>
+                    </div>
+                  </div>
+                )}
+
+                <div>
+                  <label className="eyebrow block mb-1">Notes to Poster (optional)</label>
+                  <textarea
+                    rows={3}
+                    placeholder="Any context, blockers, or notes for the task poster..."
+                    value={submissionNote}
+                    onChange={(e) => setSubmissionNote(e.target.value)}
+                    className="w-full border border-rule bg-paper p-2.5 text-xs focus:border-accent focus:outline-none leading-relaxed"
                   />
+                </div>
+
+                <div className="rounded border border-accent/20 bg-accent/5 p-3">
+                  <p className="font-mono text-[11px] text-accent font-semibold">⚡ Binary Points System</p>
+                  <p className="font-mono text-[10px] text-muted-foreground mt-0.5">Submission earns you exactly <strong>+1 credibility point</strong>. Points are binary — 0 (incomplete) or 1 (verified complete).</p>
                 </div>
 
                 <div className="flex justify-end gap-3 pt-3 border-t border-rule">
