@@ -25,7 +25,7 @@ function ThemeToggle({ className = "" }: { className?: string }) {
 const NAV = [
   // { to: "/dashboard", label: "Dashboard" },
   { to: "/directory", label: "Directory" },
-  { to: "/jobs", label: "Jobs" },
+  // { to: "/jobs", label: "Jobs" },
   // { to: "/student", label: "Student Folio" },
   { to: "/communities", label: "Communities" },
   { to: "/events", label: "Events" },

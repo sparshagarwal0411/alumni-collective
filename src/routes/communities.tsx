@@ -198,7 +198,7 @@ function CommunitiesPage() {
         )}
 
         {/* Tab 2: Where Alumni Work */}
-        {tab === "companies" && (
+        {/* {tab === "companies" && (
           companiesResult.isLoading ? (
             <Loading label="Listing employers" />
           ) : (
@@ -243,7 +243,7 @@ function CommunitiesPage() {
               </div>
             </>
           )
-        )}
+        )} */}
 
         {/* Tab 3: Mentorship Circle (All Alumni with Active Consultations Board) */}
         {tab === "mentorship" && (
