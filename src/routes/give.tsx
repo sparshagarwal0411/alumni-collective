@@ -1,8 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Empty, ErrorNote, Loading, PageHead, SampleTag, Section } from "@/components/site/ui";
 import { fundsQuery, fmtMoney } from "@/lib/queries";
+import { useAuth } from "@/lib/auth";
+import { Lock, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/give")({
@@ -16,6 +18,7 @@ export const Route = createFileRoute("/give")({
 });
 
 function GivePage() {
+  const { user, currentRole, signInAsDemo } = useAuth();
   const fundsResult = useQuery(fundsQuery);
   const funds = fundsResult.data ?? [];
 
@@ -27,16 +30,29 @@ function GivePage() {
   const [isAnonymous, setIsAnonymous] = useState<boolean>(false);
   const [isPledging, setIsPledging] = useState<boolean>(false);
 
+  useEffect(() => {
+    if (user) {
+      if (!donorName && user.user_metadata?.full_name) {
+        setDonorName(user.user_metadata.full_name);
+      }
+      if (!donorEmail && user.email) {
+        setDonorEmail(user.email);
+      }
+    }
+  }, [user]);
+
   const activeFund = funds.find((f) => f.id === selectedFundId) || funds[0];
 
   const handlePledge = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) {
+      toast.error("Please sign in to complete your gift.");
+      return;
+    }
     setIsPledging(true);
     setTimeout(() => {
       setIsPledging(false);
       toast.success("Thank you for your generous pledge to the Ashwood College Endowment.");
-      setDonorName("");
-      setDonorEmail("");
       setCustomAmount("");
     }, 600);
   };
@@ -224,18 +240,61 @@ function GivePage() {
                   </div>
 
                   <div className="pt-4 border-t border-rule space-y-3">
-                    <button
-                      type="submit"
-                      disabled={isPledging}
-                      className="w-full bg-accent text-accent-foreground py-3 text-xs uppercase tracking-widest hover:bg-primary transition-colors disabled:opacity-50"
-                    >
-                      {isPledging
-                        ? "Transmitting Pledge..."
-                        : `Complete Gift of ${fmtMoney(finalAmount || 5000)}`}
-                    </button>
-                    <p className="text-[11px] text-muted-foreground text-center">
-                      Official College Receipt generated immediately with cryptographic token.
-                    </p>
+                    {user ? (
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 p-2 border border-emerald-200 dark:border-emerald-800 rounded">
+                          <ShieldCheck className="h-4 w-4 shrink-0" />
+                          <span>Authenticated Donor: <strong>{donorName || user.email}</strong> ({currentRole.toUpperCase()})</span>
+                        </div>
+                        <button
+                          type="submit"
+                          disabled={isPledging}
+                          className="w-full bg-accent text-accent-foreground py-3 text-xs uppercase tracking-widest hover:bg-primary transition-colors disabled:opacity-50 cursor-pointer"
+                        >
+                          {isPledging
+                            ? "Transmitting Pledge..."
+                            : `Complete Gift of ${fmtMoney(finalAmount || 5000)}`}
+                        </button>
+                        <p className="text-[11px] text-muted-foreground text-center">
+                          Official College Receipt generated immediately with cryptographic token.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3 bg-muted/40 p-4 border border-rule rounded">
+                        <div className="flex items-center gap-2 text-xs text-foreground font-semibold">
+                          <Lock className="h-4 w-4 text-accent" />
+                          <span>Member Login Required to Complete Gift</span>
+                        </div>
+                        <p className="text-xs text-ink-soft">
+                          To generate tax-exempt receipts (80G / 501(c)(3)) and record your contribution in the College register, please authenticate with your account.
+                        </p>
+                        <Link
+                          to="/auth"
+                          search={{ redirect: "/give", intent: "donate" }}
+                          className="block w-full text-center bg-primary text-primary-foreground py-2.5 text-xs uppercase tracking-widest hover:bg-accent transition-colors"
+                        >
+                          Sign In to Complete Gift
+                        </Link>
+                        <div className="flex items-center justify-center gap-2 pt-1 text-[11px] text-muted-foreground font-mono">
+                          <span>Quick test:</span>
+                          <button
+                            type="button"
+                            onClick={() => signInAsDemo("alumni")}
+                            className="link-u text-foreground hover:text-accent cursor-pointer"
+                          >
+                            Alum
+                          </button>
+                          <span>·</span>
+                          <button
+                            type="button"
+                            onClick={() => signInAsDemo("faculty")}
+                            className="link-u text-foreground hover:text-accent cursor-pointer"
+                          >
+                            Faculty
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </form>
               </div>

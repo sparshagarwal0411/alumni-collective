@@ -7,8 +7,9 @@ import { CompanyLogo } from "@/components/companies/CompanyLogo";
 import { profilesQuery } from "@/lib/queries";
 import { getAlumniPortrait } from "@/lib/portraits";
 import { MOCK_MENTORSHIP_REQUESTS, type MentorshipRequest } from "@/lib/mockData";
+import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
-import { CheckCircle2, Clock, MessageSquare, Send, UserCheck, X, ArrowLeft, Calendar } from "lucide-react";
+import { CheckCircle2, Clock, MessageSquare, Send, UserCheck, X, ArrowLeft, Calendar, Lock, ShieldCheck } from "lucide-react";
 
 const mentorshipSearch = z.object({
   mentorId: z.string().optional().catch(undefined),
@@ -38,6 +39,7 @@ const DEFAULT_TOPICS = [
 ];
 
 function MentorshipPage() {
+  const { user, currentRole, signInAsDemo } = useAuth();
   const { mentorId } = Route.useSearch();
   const profilesResult = useQuery(profilesQuery);
   const people = profilesResult.data ?? [];
@@ -80,6 +82,10 @@ function MentorshipPage() {
   }, [mentors, selectedDept, searchQuery]);
 
   const handleSendRequest = (mentorTargetId: string) => {
+    if (!user) {
+      toast.error("Please sign in to schedule a consultation session.");
+      return;
+    }
     setIsSubmitting(true);
 
     setTimeout(() => {
@@ -89,7 +95,7 @@ function MentorshipPage() {
       const newReq: MentorshipRequest = {
         id: `mr-${Date.now()}`,
         mentor: mentorTargetId,
-        mentee: "current-user",
+        mentee: user.id || "current-user",
         topic: selectedTopic,
         message: requestNote,
         status: "pending",
@@ -230,6 +236,45 @@ function MentorshipPage() {
                       </button>
                     </div>
                   </div>
+                ) : !user ? (
+                  <div className="py-8 text-center space-y-4">
+                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-accent/10 border border-accent/30 text-accent">
+                      <Lock className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <h4 className="font-display text-2xl">Member Sign-In Required</h4>
+                      <p className="mt-2 text-sm text-ink-soft max-w-md mx-auto">
+                        Consultation sessions with {focusedMentor.full_name} are reserved for verified Ashwood College members (Student, Faculty, or Alum).
+                      </p>
+                    </div>
+                    <div className="pt-2">
+                      <Link
+                        to="/auth"
+                        search={{ redirect: `/mentorship?mentorId=${focusedMentor.id}`, intent: "mentorship" }}
+                        className="inline-block bg-primary px-6 py-3 text-xs uppercase tracking-widest text-primary-foreground hover:bg-accent transition-colors"
+                      >
+                        Sign In to Request Consultation
+                      </Link>
+                    </div>
+                    <div className="flex items-center justify-center gap-2 pt-2 text-xs text-muted-foreground font-mono">
+                      <span>Quick test:</span>
+                      <button
+                        type="button"
+                        onClick={() => signInAsDemo("student")}
+                        className="link-u text-foreground hover:text-accent cursor-pointer"
+                      >
+                        Student
+                      </button>
+                      <span>·</span>
+                      <button
+                        type="button"
+                        onClick={() => signInAsDemo("alumni")}
+                        className="link-u text-foreground hover:text-accent cursor-pointer"
+                      >
+                        Alum
+                      </button>
+                    </div>
+                  </div>
                 ) : (
                   <form
                     onSubmit={(e) => {
@@ -238,6 +283,11 @@ function MentorshipPage() {
                     }}
                     className="space-y-6"
                   >
+                    <div className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 p-2 border border-emerald-200 dark:border-emerald-800 rounded">
+                      <ShieldCheck className="h-4 w-4 shrink-0" />
+                      <span>Requesting as: <strong>{user.user_metadata?.full_name || user.email}</strong> ({currentRole.toUpperCase()})</span>
+                    </div>
+
                     <div>
                       <label className="eyebrow block mb-2">Primary Consultation Topic</label>
                       <select
@@ -530,6 +580,43 @@ function MentorshipPage() {
                     Done
                   </button>
                 </div>
+              ) : !user ? (
+                <div className="mt-6 space-y-4 border border-rule bg-paper p-5 rounded text-center">
+                  <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-accent/10 border border-accent/30 text-accent">
+                    <Lock className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h4 className="font-display text-xl">Sign-In Required for Mentorship</h4>
+                    <p className="text-xs text-ink-soft mt-1">
+                      Direct appointments require an authenticated student, faculty, or alumni profile to coordinate meeting coordinates.
+                    </p>
+                  </div>
+                  <Link
+                    to="/auth"
+                    search={{ redirect: `/mentorship?mentorId=${selectedModalMentor.id}`, intent: "mentorship" }}
+                    className="block w-full text-center bg-primary text-primary-foreground py-2.5 text-xs uppercase tracking-widest hover:bg-accent transition-colors"
+                  >
+                    Sign In to Schedule
+                  </Link>
+                  <div className="flex items-center justify-center gap-2 pt-1 text-[11px] text-muted-foreground font-mono">
+                    <span>Quick test:</span>
+                    <button
+                      type="button"
+                      onClick={() => signInAsDemo("student")}
+                      className="link-u text-foreground hover:text-accent cursor-pointer"
+                    >
+                      Student
+                    </button>
+                    <span>·</span>
+                    <button
+                      type="button"
+                      onClick={() => signInAsDemo("alumni")}
+                      className="link-u text-foreground hover:text-accent cursor-pointer"
+                    >
+                      Alum
+                    </button>
+                  </div>
+                </div>
               ) : (
                 <form
                   onSubmit={(e) => {
@@ -538,6 +625,10 @@ function MentorshipPage() {
                   }}
                   className="mt-6 space-y-4"
                 >
+                  <div className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 p-2 border border-emerald-200 dark:border-emerald-800 rounded">
+                    <ShieldCheck className="h-4 w-4 shrink-0" />
+                    <span>Mentee Profile: <strong>{user.user_metadata?.full_name || user.email}</strong> ({currentRole.toUpperCase()})</span>
+                  </div>
                   <div>
                     <label className="eyebrow block mb-2">Primary Consultation Topic</label>
                     <select

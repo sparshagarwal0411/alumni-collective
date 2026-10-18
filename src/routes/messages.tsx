@@ -4,6 +4,8 @@ import { useState, useMemo } from "react";
 import { Monogram, PageHead, SampleTag, Section } from "@/components/site/ui";
 import { profilesQuery } from "@/lib/queries";
 import { MOCK_MESSAGES, type Message } from "@/lib/mockData";
+import { useAuth } from "@/lib/auth";
+import { Lock, Sparkles, UserCheck } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/messages")({
@@ -18,8 +20,10 @@ export const Route = createFileRoute("/messages")({
 });
 
 function MessagesPage() {
+  const { user, currentRole, signInAsDemo } = useAuth();
   const profilesResult = useQuery(profilesQuery);
   const people = profilesResult.data ?? [];
+
 
   const [activePartnerId, setActivePartnerId] = useState<string>("p-arjun-nair");
   const [messages, setMessages] = useState<Message[]>(MOCK_MESSAGES);
@@ -89,16 +93,83 @@ function MessagesPage() {
       />
 
       <Section className="mt-4">
-        <div className="border border-rule bg-paper min-h-[620px] grid grid-cols-1 md:grid-cols-12 overflow-hidden shadow-sm">
-          {/* Left: Chat Partner List */}
-          <div className="md:col-span-4 border-r border-rule flex flex-col justify-between">
+        {!user ? (
+          <div className="border border-rule bg-paper p-8 md:p-14 text-center max-w-2xl mx-auto space-y-6 shadow-sm">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-accent/10 border border-accent/30 text-accent">
+              <Lock className="h-7 w-7" />
+            </div>
             <div>
-              <div className="p-4 border-b border-rule bg-background flex items-center justify-between">
-                <span className="eyebrow">Active Inquiries</span>
-                <span className="font-mono text-xs text-muted-foreground">
-                  Sorted by Warmth
-                </span>
+              <span className="eyebrow text-accent">Member Authentication Required</span>
+              <h2 className="font-display text-3xl md:text-4xl mt-2 text-foreground">
+                Private Chat & Inquiries Channel
+              </h2>
+              <p className="mt-3 text-sm text-ink-soft leading-relaxed">
+                Direct messaging with fellow alumni, faculty mentors, and students is exclusively available to authenticated Ashwood College members.
+              </p>
+            </div>
+
+            <div className="border border-rule bg-card/60 p-4 rounded text-left space-y-2">
+              <span className="eyebrow block">Roles Permitted:</span>
+              <div className="flex flex-wrap gap-2 text-xs font-mono">
+                <span className="border border-rule bg-background px-2.5 py-1 rounded">🎓 Student</span>
+                <span className="border border-rule bg-background px-2.5 py-1 rounded">🏛️ Faculty</span>
+                <span className="border border-rule bg-background px-2.5 py-1 rounded">💼 Alum</span>
               </div>
+            </div>
+
+            <div className="space-y-3 pt-2">
+              <Link
+                to="/auth"
+                search={{ redirect: "/messages", intent: "chat" }}
+                className="inline-flex w-full items-center justify-center gap-2 bg-primary px-6 py-3 text-xs uppercase tracking-widest text-primary-foreground hover:bg-accent transition-colors"
+              >
+                Sign In to Access Chat
+              </Link>
+
+              <div className="flex items-center justify-center gap-2 pt-2 text-xs text-muted-foreground font-mono">
+                <span>Or quick test:</span>
+                <button
+                  type="button"
+                  onClick={() => signInAsDemo("student")}
+                  className="link-u text-foreground hover:text-accent cursor-pointer"
+                >
+                  Student
+                </button>
+                <span>·</span>
+                <button
+                  type="button"
+                  onClick={() => signInAsDemo("faculty")}
+                  className="link-u text-foreground hover:text-accent cursor-pointer"
+                >
+                  Faculty
+                </button>
+                <span>·</span>
+                <button
+                  type="button"
+                  onClick={() => signInAsDemo("alumni")}
+                  className="link-u text-foreground hover:text-accent cursor-pointer"
+                >
+                  Alum
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="border border-rule bg-paper min-h-[620px] grid grid-cols-1 md:grid-cols-12 overflow-hidden shadow-sm">
+            {/* Left: Chat Partner List */}
+            <div className="md:col-span-4 border-r border-rule flex flex-col justify-between">
+              <div>
+                <div className="p-4 border-b border-rule bg-background flex items-center justify-between">
+                  <div>
+                    <span className="eyebrow">Active Inquiries</span>
+                    <p className="font-mono text-[10px] text-accent mt-0.5">
+                      Logged in as {currentRole.toUpperCase()}
+                    </p>
+                  </div>
+                  <span className="font-mono text-xs text-muted-foreground">
+                    Sorted by Warmth
+                  </span>
+                </div>
 
               <div className="divide-y divide-rule max-h-[540px] overflow-y-auto">
                 {chatPartners.map((partner) => {
@@ -252,6 +323,7 @@ function MessagesPage() {
             )}
           </div>
         </div>
+        )}
       </Section>
     </>
   );
