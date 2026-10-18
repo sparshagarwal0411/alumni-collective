@@ -25,18 +25,12 @@ import {
   type CompanyChapter,
 } from "./mockData";
 
+import { fetchAllProfiles, fetchAllMicrotasks } from "./supabaseSync";
+
 export const profilesQuery = queryOptions({
   queryKey: ["profiles"],
   queryFn: async (): Promise<Profile[]> => {
-    try {
-      const { data, error } = await supabase.from("profiles").select("*").order("grad_year", { ascending: false });
-      if (!error && data && data.length > 0) {
-        return data as unknown as Profile[];
-      }
-    } catch {
-      // Fallback to mock data
-    }
-    return MOCK_PROFILES;
+    return fetchAllProfiles();
   },
 });
 
@@ -44,15 +38,8 @@ export const profileQuery = (id: string) =>
   queryOptions({
     queryKey: ["profile", id],
     queryFn: async (): Promise<Profile | null> => {
-      try {
-        const { data, error } = await supabase.from("profiles").select("*").eq("id", id).maybeSingle();
-        if (!error && data) {
-          return data as unknown as Profile;
-        }
-      } catch {
-        // Fallback
-      }
-      return MOCK_PROFILES.find((p) => p.id === id) ?? null;
+      const all = await fetchAllProfiles();
+      return all.find((p) => p.id === id) ?? null;
     },
   });
 
@@ -89,15 +76,7 @@ export const jobsQuery = queryOptions({
 export const tasksQuery = queryOptions({
   queryKey: ["tasks"],
   queryFn: async (): Promise<Microtask[]> => {
-    try {
-      const { data, error } = await supabase.from("microtasks").select("*").order("created_at", { ascending: false });
-      if (!error && data && data.length > 0) {
-        return data as unknown as Microtask[];
-      }
-    } catch {
-      // Fallback
-    }
-    return MOCK_MICROTASKS;
+    return fetchAllMicrotasks();
   },
 });
 

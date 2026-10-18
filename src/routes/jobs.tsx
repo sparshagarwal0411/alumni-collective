@@ -4,12 +4,9 @@ import { useState, useMemo, useEffect } from "react";
 import { Empty, ErrorNote, Loading, PageHead, SampleTag, Section } from "@/components/site/ui";
 import { CompanyLogo } from "@/components/companies/CompanyLogo";
 import { jobsQuery, profilesQuery } from "@/lib/queries";
-<<<<<<< HEAD
 import { getStudentProfile, type StudentProfileData } from "@/lib/studentProfile";
-=======
 import { useAuth } from "@/lib/auth";
 import { Lock, ShieldCheck } from "lucide-react";
->>>>>>> 6a64cfba3ad78b914ee742765300955f34639493
 import { toast } from "sonner";
 import {
   Briefcase,
@@ -983,144 +980,110 @@ function JobsPage() {
                 </button>
               </div>
 
-<<<<<<< HEAD
-  <form onSubmit={handleRequestReferral} className="mt-5 space-y-4">
-    {/* Folio Attachment Badge */}
-    <div className="border border-rule bg-paper p-3.5 space-y-2">
-      <label className="flex items-center gap-2 cursor-pointer">
-        <input
-          type="checkbox"
-          checked={attachStudentFolio}
-          onChange={(e) => setAttachStudentFolio(e.target.checked)}
-          className="accent-[var(--accent)] h-4 w-4"
-        />
-        <span className="font-mono text-xs text-foreground font-semibold">
-          Attach my verified Student Folio & Resume
-        </span>
-      </label>
-      {attachStudentFolio && (
-        <div className="pl-6 font-mono text-[11px] text-muted-foreground space-y-1">
-          <p>
-            Candidate: <strong>{studentProfile.fullName}</strong> (Class of{" "}
-            {studentProfile.gradYear})
-          </p>
-          <p>
-            Resume:{" "}
-            {studentProfile.resume
-              ? `✓ ${studentProfile.resume.fileName} (${studentProfile.resume.fileSize})`
-              : "No PDF uploaded (Profile only)"}
-          </p>
-          <p>Projects: {studentProfile.projects.length} artifacts included</p>
-        </div>
-      )}
-    </div>
-
-    <div>
-      <label className="eyebrow block mb-1">Statement of Fit & Introduction</label>
-      <textarea
-        rows={4}
-        required
-        placeholder="Briefly explain your relevant experience with the required skills, your graduation timeline, and why you are interested in this team..."
-        value={referralNote}
-        onChange={(e) => setReferralNote(e.target.value)}
-        className="w-full border border-rule bg-paper p-3 text-sm focus:border-accent focus:outline-none font-sans leading-relaxed"
-      />
-=======
               {!user ? (
-        <div className="mt-6 space-y-4 border border-rule bg-paper p-5 rounded text-center">
-          <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-accent/10 border border-accent/30 text-accent">
-            <Lock className="h-5 w-5" />
-          </div>
-          <div>
-            <h4 className="font-display text-xl">Sign-In Required for Referrals</h4>
-            <p className="text-xs text-ink-soft mt-1">
-              Internal alumni referrals require an authenticated student, faculty, or alumni profile so the referrer can vouch for your application.
-            </p>
-          </div>
-          <Link
-            to="/auth"
-            search={{ redirect: "/jobs", intent: "referral" }}
-            className="block w-full text-center bg-primary text-primary-foreground py-2.5 text-xs uppercase tracking-widest hover:bg-accent transition-colors"
-          >
-            Sign In to Request Referral
-          </Link>
-          <div className="flex items-center justify-center gap-2 pt-1 text-[11px] text-muted-foreground font-mono">
-            <span>Quick test:</span>
-            <button
-              type="button"
-              onClick={() => signInAsDemo("student")}
-              className="link-u text-foreground hover:text-accent cursor-pointer"
-            >
-              Student
-            </button>
-            <span>·</span>
-            <button
-              type="button"
-              onClick={() => signInAsDemo("alumni")}
-              className="link-u text-foreground hover:text-accent cursor-pointer"
-            >
-              Alum
-            </button>
-          </div>
->>>>>>> 6a64cfba3ad78b914ee742765300955f34639493
-        </div>
-      ) : (
-        <form onSubmit={handleRequestReferral} className="mt-6 space-y-4">
-          <div className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 p-2 border border-emerald-200 dark:border-emerald-800 rounded">
-            <ShieldCheck className="h-4 w-4 shrink-0" />
-            <span>Candidate Profile: <strong>{user.user_metadata?.full_name || user.email}</strong> ({currentRole.toUpperCase()})</span>
-          </div>
-
-<<<<<<< HEAD
-  <div className="flex justify-end gap-3 pt-3 border-t border-rule">
-    <button
-      type="button"
-      onClick={() => setActiveReferralModal(null)}
-      className="border border-rule px-4 py-2 text-xs uppercase tracking-widest text-muted-foreground hover:border-foreground hover:text-foreground"
-    >
-      Cancel
-    </button>
-    <button
-      type="submit"
-      disabled={isSubmitting}
-      className="bg-primary px-6 py-2 text-xs uppercase tracking-widest text-primary-foreground hover:bg-accent transition-colors disabled:opacity-50 font-semibold"
-    >
-      {isSubmitting ? "Dispatching..." : "Send Referral Request"}
-    </button>
-  </div>
-              </form >
-=======
+                <div className="mt-6 space-y-4 border border-rule bg-paper p-5 rounded text-center">
+                  <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-accent/10 border border-accent/30 text-accent">
+                    <Lock className="h-5 w-5" />
+                  </div>
                   <div>
-                    <label className="eyebrow block mb-2">Introduction & Fit Statement</label>
+                    <h4 className="font-display text-xl">Sign-In Required for Referrals</h4>
+                    <p className="text-xs text-ink-soft mt-1">
+                      Internal alumni referrals require an authenticated student, faculty, or alumni profile so the referrer can vouch for your application.
+                    </p>
+                  </div>
+                  <Link
+                    to="/auth"
+                    search={{ redirect: "/jobs", intent: "referral" }}
+                    className="block w-full text-center bg-primary text-primary-foreground py-2.5 text-xs uppercase tracking-widest hover:bg-accent transition-colors"
+                  >
+                    Sign In to Request Referral
+                  </Link>
+                  <div className="flex items-center justify-center gap-2 pt-1 text-[11px] text-muted-foreground font-mono">
+                    <span>Quick test:</span>
+                    <button
+                      type="button"
+                      onClick={() => signInAsDemo("student")}
+                      className="link-u text-foreground hover:text-accent cursor-pointer"
+                    >
+                      Student
+                    </button>
+                    <span>·</span>
+                    <button
+                      type="button"
+                      onClick={() => signInAsDemo("alumni")}
+                      className="link-u text-foreground hover:text-accent cursor-pointer"
+                    >
+                      Alum
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <form onSubmit={handleRequestReferral} className="mt-5 space-y-4">
+                  <div className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 p-2 border border-emerald-200 dark:border-emerald-800 rounded">
+                    <ShieldCheck className="h-4 w-4 shrink-0" />
+                    <span>Candidate Profile: <strong>{user.user_metadata?.full_name || user.email}</strong> ({currentRole.toUpperCase()})</span>
+                  </div>
+
+                  {/* Folio Attachment Badge */}
+                  <div className="border border-rule bg-paper p-3.5 space-y-2">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={attachStudentFolio}
+                        onChange={(e) => setAttachStudentFolio(e.target.checked)}
+                        className="accent-[var(--accent)] h-4 w-4"
+                      />
+                      <span className="font-mono text-xs text-foreground font-semibold">
+                        Attach my verified Student Folio & Resume
+                      </span>
+                    </label>
+                    {attachStudentFolio && (
+                      <div className="pl-6 font-mono text-[11px] text-muted-foreground space-y-1">
+                        <p>
+                          Candidate: <strong>{studentProfile.fullName}</strong> (Class of{" "}
+                          {studentProfile.gradYear})
+                        </p>
+                        <p>
+                          Resume:{" "}
+                          {studentProfile.resume
+                            ? `✓ ${studentProfile.resume.fileName} (${studentProfile.resume.fileSize})`
+                            : "No PDF uploaded (Profile only)"}
+                        </p>
+                        <p>Projects: {studentProfile.projects.length} artifacts included</p>
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="eyebrow block mb-1">Statement of Fit & Introduction</label>
                     <textarea
                       rows={4}
                       required
-                      placeholder="Briefly explain your relevant experience, graduation year, and why you are excited about this role..."
+                      placeholder="Briefly explain your relevant experience with the required skills, your graduation timeline, and why you are interested in this team..."
                       value={referralNote}
                       onChange={(e) => setReferralNote(e.target.value)}
-                      className="w-full border border-rule bg-paper p-3 text-sm focus:border-accent focus:outline-none"
+                      className="w-full border border-rule bg-paper p-3 text-sm focus:border-accent focus:outline-none font-sans leading-relaxed"
                     />
                   </div>
 
-                  <div className="flex justify-end gap-3 pt-2">
+                  <div className="flex justify-end gap-3 pt-3 border-t border-rule">
                     <button
                       type="button"
                       onClick={() => setActiveReferralModal(null)}
-                      className="border border-rule px-4 py-2 text-xs uppercase tracking-wider text-muted-foreground hover:text-foreground cursor-pointer"
+                      className="border border-rule px-4 py-2 text-xs uppercase tracking-widest text-muted-foreground hover:border-foreground hover:text-foreground cursor-pointer"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="bg-primary px-5 py-2 text-xs uppercase tracking-widest text-primary-foreground hover:bg-accent transition-colors disabled:opacity-50 cursor-pointer"
+                      className="bg-primary px-6 py-2 text-xs uppercase tracking-widest text-primary-foreground hover:bg-accent transition-colors disabled:opacity-50 font-semibold cursor-pointer"
                     >
-                      {isSubmitting ? "Submitting..." : "Send Request"}
+                      {isSubmitting ? "Dispatching..." : "Send Referral Request"}
                     </button>
                   </div>
                 </form>
               )}
->>>>>>> 6a64cfba3ad78b914ee742765300955f34639493
             </div >
           </div >
         )

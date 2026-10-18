@@ -48,7 +48,7 @@ function AuthPage() {
   const { user, signInWithOAuth, signInAsDemo } = useAuth();
   const navigate = useNavigate();
   const search = useSearch({ from: "/auth" });
-  const redirectTarget = search.redirect || "/directory";
+  const redirectTarget = search.redirect || "/dashboard";
 
   const [selectedRole, setSelectedRole] = useState<AppRole>("student");
   const [mode, setMode] = useState<"in" | "up" | "forgot">("in");

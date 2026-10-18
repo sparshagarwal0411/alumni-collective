@@ -128,7 +128,7 @@ function Home() {
         </div>
       </Section> */}
 
-      <Section className="mt-28">
+      {/* <Section className="mt-28">
         <div className="flex flex-wrap items-end justify-between gap-4 border-b border-foreground pb-3">
           <div>
             <p className="eyebrow">The hiring register</p>
@@ -157,7 +157,7 @@ function Home() {
             <CarouselNext className="-right-10 md:-right-12" aria-label="Next recruiter" />
           </Carousel>
         </div>
-      </Section>
+      </Section> */}
 
       <Section className="mt-28">
         <div className="flex items-baseline justify-between border-b border-foreground pb-3">
@@ -198,9 +198,8 @@ function Home() {
                 key={person.id}
                 to="/alumni/$id"
                 params={{ id: person.id }}
-                className={`group flex flex-col items-center gap-8 border-t border-rule py-12 last:border-b md:flex-row md:gap-16 ${
-                  photoRight ? "md:flex-row-reverse" : ""
-                }`}
+                className={`group flex flex-col items-center gap-8 border-t border-rule py-12 last:border-b md:flex-row md:gap-16 ${photoRight ? "md:flex-row-reverse" : ""
+                  }`}
               >
                 {portrait ? (
                   <figure className="w-full shrink-0 md:w-[46%]">
@@ -246,7 +245,7 @@ function Home() {
           })}
         </div>
       </Section>
-            <Section className="mt-28 grid gap-12 md:grid-cols-12">
+      <Section className="mt-28 grid gap-12 md:grid-cols-12">
         <div className="md:col-span-4">
           <h2 className="text-4xl leading-tight">What the community does here.</h2>
         </div>

@@ -61,7 +61,7 @@ const SKILL_SUGGESTIONS = [
   "Raft Consensus",
 ];
 
-function StudentProfilePage() {
+export function StudentProfilePage() {
   const [profile, setProfile] = useState<StudentProfileData>(getStudentProfile());
   const [activeView, setActiveView] = useState<"dossier" | "editor">("dossier");
   const [isSaving, setIsSaving] = useState(false);
@@ -252,12 +252,12 @@ function StudentProfilePage() {
 
   return (
     <>
-      <PageHead
+      {/* <PageHead
         index="IX."
         eyebrow="Student Registry · Folio"
         title="Student dossier & credentials."
         lede="Curate your resume, technical competencies, and flagship projects so Ashwood alumni recruiters and mentors can review your capability at a glance."
-      />
+      /> */}
 
       <Section>
         {/* Top View Toggle & Folio Actions */}
@@ -267,11 +267,10 @@ function StudentProfilePage() {
             <button
               type="button"
               onClick={() => setActiveView("dossier")}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 transition-colors ${
-                activeView === "dossier"
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 transition-colors ${activeView === "dossier"
                   ? "bg-primary text-primary-foreground font-semibold"
                   : "border border-rule hover:border-foreground"
-              }`}
+                }`}
             >
               <Eye className="h-3.5 w-3.5" />
               Public Dossier (Alumnus View)
@@ -279,11 +278,10 @@ function StudentProfilePage() {
             <button
               type="button"
               onClick={() => setActiveView("editor")}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 transition-colors ${
-                activeView === "editor"
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 transition-colors ${activeView === "editor"
                   ? "bg-primary text-primary-foreground font-semibold"
                   : "border border-rule hover:border-foreground"
-              }`}
+                }`}
             >
               <Edit3 className="h-3.5 w-3.5" />
               Edit Dossier & Resume
@@ -548,13 +546,12 @@ function StudentProfilePage() {
                           >
                             <span className="font-medium text-foreground">{skill.name}</span>
                             <span
-                              className={`font-mono text-[9px] uppercase px-1 py-0.2 rounded-xs ${
-                                skill.level === "Advanced"
+                              className={`font-mono text-[9px] uppercase px-1 py-0.2 rounded-xs ${skill.level === "Advanced"
                                   ? "bg-accent/15 text-accent font-semibold"
                                   : skill.level === "Proficient"
-                                  ? "bg-muted text-muted-foreground"
-                                  : "text-ink-soft"
-                              }`}
+                                    ? "bg-muted text-muted-foreground"
+                                    : "text-ink-soft"
+                                }`}
                             >
                               {skill.level}
                             </span>

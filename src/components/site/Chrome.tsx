@@ -23,11 +23,12 @@ function ThemeToggle({ className = "" }: { className?: string }) {
 }
 
 const NAV = [
+  // { to: "/dashboard", label: "Dashboard" },
   { to: "/directory", label: "Directory" },
+  { to: "/jobs", label: "Jobs" },
+  // { to: "/student", label: "Student Folio" },
   { to: "/communities", label: "Communities" },
   { to: "/events", label: "Events" },
-  { to: "/jobs", label: "Jobs" },
-  { to: "/student", label: "Student Folio" },
   { to: "/network", label: "Network" },
   { to: "/updates", label: "Updates" },
 ] as const;
@@ -54,16 +55,16 @@ export function Header() {
         <div className="hidden items-center gap-5 text-sm lg:flex">
           {user ? (
             <>
-              <div className="flex items-center gap-1.5">
-                <span className="font-mono text-[10px] uppercase bg-paper border border-rule px-1.5 py-0.5 text-accent font-semibold">
+              <Link
+                to="/dashboard"
+                className="flex items-center gap-1.5 border border-accent/40 bg-accent/10 px-2 py-0.5 text-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+                title="Universal Collective Dashboard"
+              >
+                <span className="font-mono text-[10px] uppercase text-accent font-semibold">
                   {currentRole}
                 </span>
-                <Link to="/account" className="text-ink-soft hover:text-foreground">
-                  Account
-                </Link>
-              </div>
-              <Link to="/messages" search={{}} className="text-ink-soft hover:text-foreground">Messages</Link>
-              <Link to="/mentorship" className="text-ink-soft hover:text-foreground">Mentorship</Link>
+                <span className="font-medium text-xs">Dashboard</span>
+              </Link>
               <button
                 onClick={async () => {
                   await signOut();
@@ -92,9 +93,7 @@ export function Header() {
             ))}
             {user ? (
               <>
-                <li><Link to="/messages" search={{}}>Messages</Link></li>
-                <li><Link to="/mentorship">Mentorship</Link></li>
-                <li><Link to="/account">Account</Link></li>
+                <li><Link to="/dashboard" className="text-accent">Dashboard ({currentRole})</Link></li>
                 <li><button onClick={() => signOut().then(() => navigate({ to: "/", replace: true }))}>Sign out</button></li>
               </>
             ) : (
