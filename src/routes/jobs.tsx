@@ -220,7 +220,7 @@ function JobsPage() {
   const profiles = profilesResult.data ?? [];
 
   // Local student profile for skill matching
-  const [studentProfile, setStudentProfile] = useState<StudentProfileData>(getStudentProfile());
+  const [studentProfile, setStudentProfile] = useState<StudentProfileData>(() => getStudentProfile(user?.id));
   const [tab, setTab] = useState<"openings" | "skills-rubric" | "post">("openings");
 
   // Search & filter states
@@ -249,12 +249,13 @@ function JobsPage() {
   const [localPostedJobs, setLocalPostedJobs] = useState<EnrichedJob[]>(getLocalPostedJobs());
 
   useEffect(() => {
+    setStudentProfile(getStudentProfile(user?.id));
     const handleUpdate = () => {
-      setStudentProfile(getStudentProfile());
+      setStudentProfile(getStudentProfile(user?.id));
     };
     window.addEventListener("student_profile_updated", handleUpdate);
     return () => window.removeEventListener("student_profile_updated", handleUpdate);
-  }, []);
+  }, [user?.id]);
 
   // Merge server mock jobs with enriched metadata and locally posted jobs
   const allEnrichedJobs = useMemo(() => {

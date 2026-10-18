@@ -1,3 +1,7 @@
+import type { User } from "@supabase/supabase-js";
+
+type ProfileRole = "student" | "faculty" | "alumni" | "admin";
+
 export interface Project {
   id: string;
   title: string;
@@ -19,6 +23,9 @@ export interface StudentResume {
   summaryNote?: string;
 }
 
+export type SkillLevel = "Advanced" | "Proficient" | "Familiar";
+export type SkillCategory = "Languages" | "Systems & Cloud" | "AI & ML" | "Frontend & Design" | "Tools & Theory";
+
 export interface StudentProfileData {
   id: string;
   fullName: string;
@@ -37,8 +44,8 @@ export interface StudentProfileData {
   resume?: StudentResume | null;
   skills: {
     name: string;
-    level: "Advanced" | "Proficient" | "Familiar";
-    category: "Languages" | "Systems & Cloud" | "AI & ML" | "Frontend & Design" | "Tools & Theory";
+    level: SkillLevel;
+    category: SkillCategory;
   }[];
   projects: Project[];
   coursework: string[];
@@ -155,25 +162,121 @@ export const DEFAULT_STUDENT_PROFILE: StudentProfileData = {
   },
 };
 
-const STORAGE_KEY = "ashwood_student_profile_v1";
+const GUEST_STORAGE_KEY = "ashwood_student_profile_v1";
+const ONBOARD_PREFIX = "ashwood_onboarded_v1_";
 
-export function getStudentProfile(): StudentProfileData {
-  if (typeof window === "undefined") return DEFAULT_STUDENT_PROFILE;
+export const STUDENT_PROFILE_UPDATED_EVENT = "student_profile_updated";
+
+function profileStorageKey(userId?: string | null) {
+  return userId ? `${GUEST_STORAGE_KEY}_${userId}` : GUEST_STORAGE_KEY;
+}
+
+export function createBlankStudentProfile(
+  partial: Partial<StudentProfileData> = {},
+): StudentProfileData {
+  return {
+    id: partial.id || `student-${Date.now()}`,
+    fullName: partial.fullName || "",
+    department: partial.department || "",
+    degree: partial.degree || "",
+    gradYear: partial.gradYear || new Date().getFullYear() + 1,
+    gpa: partial.gpa,
+    city: partial.city || "",
+    headline: partial.headline || "",
+    bio: partial.bio || "",
+    avatarUrl: partial.avatarUrl,
+    email: partial.email || "",
+    github: partial.github,
+    linkedin: partial.linkedin,
+    portfolioUrl: partial.portfolioUrl,
+    resume: partial.resume ?? null,
+    skills: partial.skills || [],
+    projects: partial.projects || [],
+    coursework: partial.coursework || [],
+    researchThesis: partial.researchThesis,
+    seeking: partial.seeking || {
+      internship: true,
+      fullTime: false,
+      researchFellowship: false,
+      referrals: true,
+      targetRoles: [],
+      preferredLocations: [],
+      availableFrom: "",
+    },
+  };
+}
+
+export function getStudentProfile(userId?: string | null): StudentProfileData {
+  if (typeof window === "undefined") {
+    return userId ? createBlankStudentProfile({ id: userId }) : DEFAULT_STUDENT_PROFILE;
+  }
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return DEFAULT_STUDENT_PROFILE;
-    return JSON.parse(raw);
+    const raw = localStorage.getItem(profileStorageKey(userId));
+    if (!raw) {
+      return userId ? createBlankStudentProfile({ id: userId }) : DEFAULT_STUDENT_PROFILE;
+    }
+    return JSON.parse(raw) as StudentProfileData;
   } catch {
-    return DEFAULT_STUDENT_PROFILE;
+    return userId ? createBlankStudentProfile({ id: userId }) : DEFAULT_STUDENT_PROFILE;
   }
 }
 
-export function saveStudentProfile(profile: StudentProfileData): void {
+export function saveStudentProfile(profile: StudentProfileData, userId?: string | null): void {
   if (typeof window === "undefined") return;
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
-    window.dispatchEvent(new CustomEvent("student_profile_updated", { detail: profile }));
+    localStorage.setItem(profileStorageKey(userId), JSON.stringify(profile));
+    window.dispatchEvent(
+      new CustomEvent(STUDENT_PROFILE_UPDATED_EVENT, { detail: { profile, userId } }),
+    );
   } catch (err) {
     console.error("Failed to save student profile", err);
   }
+}
+
+export function isOnboarded(userId?: string | null): boolean {
+  if (typeof window === "undefined" || !userId) return false;
+  return localStorage.getItem(`${ONBOARD_PREFIX}${userId}`) === "1";
+}
+
+export function markOnboarded(userId: string): void {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(`${ONBOARD_PREFIX}${userId}`, "1");
+}
+
+export function metadataFullName(user: User | null | undefined): string {
+  if (!user) return "";
+  const meta = user.user_metadata ?? {};
+  const candidates = [meta.full_name, meta.name, meta.display_name];
+  for (const value of candidates) {
+    if (typeof value === "string" && value.trim()) return value.trim();
+  }
+  const emailName = user.email?.split("@")[0]?.replace(/[._-]+/g, " ");
+  return emailName ? titleCaseName(emailName) : "";
+}
+
+export function getDisplayName(
+  user: User | null | undefined,
+  role: ProfileRole,
+  studentProfile?: StudentProfileData,
+): string {
+  if (role === "student") {
+    const fromProfile = studentProfile?.fullName?.trim();
+    if (fromProfile) return fromProfile;
+  }
+  const fromMeta = metadataFullName(user);
+  if (fromMeta) return fromMeta;
+  return studentProfile?.fullName?.trim() || "";
+}
+
+export function needsOnboarding(user: User | null | undefined, _role?: ProfileRole): boolean {
+  if (!user) return false;
+  return !isOnboarded(user.id);
+}
+
+function titleCaseName(value: string) {
+  return value
+    .split(" ")
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
 }

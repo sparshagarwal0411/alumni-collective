@@ -1,7 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { PageHead, Section } from "@/components/site/ui";
 import { toast } from "sonner";
+import { useAuth } from "@/lib/auth";
+import { getDisplayName, getStudentProfile, saveStudentProfile } from "@/lib/studentProfile";
 
 export const Route = createFileRoute("/account")({
   head: () => ({
@@ -14,7 +16,15 @@ export const Route = createFileRoute("/account")({
 });
 
 export function AccountPage() {
-  const [fullName, setFullName] = useState("Vikramaditya Roy");
+  const { user, currentRole, updateProfile } = useAuth();
+  const [fullName, setFullName] = useState(
+    () => getDisplayName(user, currentRole, getStudentProfile(user?.id)) || "",
+  );
+
+  useEffect(() => {
+    const next = getDisplayName(user, currentRole, getStudentProfile(user?.id));
+    if (next) setFullName(next);
+  }, [user, currentRole]);
   const [headline, setHeadline] = useState("Doctoral Candidate in Parallel Systems · Ashwood CSE '25");
   const [roleTitle, setRoleTitle] = useState("Research Fellow");
   const [company, setCompany] = useState("Ashwood Parallel Computing Lab");
@@ -32,10 +42,17 @@ export function AccountPage() {
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
-    setTimeout(() => {
+    void (async () => {
+      const name = fullName.trim();
+      if (user && name) {
+        await updateProfile({ full_name: name });
+        if (currentRole === "student") {
+          saveStudentProfile({ ...getStudentProfile(user.id), fullName: name }, user.id);
+        }
+      }
       setIsSaving(false);
       toast.success("Profile records successfully updated in the college register.");
-    }, 500);
+    })();
   };
 
   return (

@@ -7,7 +7,7 @@ import { jobsQuery, profilesQuery } from "@/lib/queries";
 import { getAlumniPortrait } from "@/lib/portraits";
 import { MOCK_MESSAGES, MOCK_MENTORSHIP_REQUESTS, type Message, type MentorshipRequest, type Job } from "@/lib/mockData";
 import { useAuth, type AppRole } from "@/lib/auth";
-import { getStudentProfile, type StudentProfileData } from "@/lib/studentProfile";
+import { getDisplayName, getStudentProfile, type StudentProfileData } from "@/lib/studentProfile";
 import { StudentProfilePage } from "@/routes/student";
 import { AccountPage } from "@/routes/account";
 import { supabase } from "@/integrations/supabase/client";
@@ -242,13 +242,16 @@ export function UnifiedDashboardPage() {
     }
   }, [requestedDashboardTab]);
 
-  // Local student profile
-  const [studentProfile, setStudentProfile] = useState<StudentProfileData>(getStudentProfile());
+  // Local student profile — keyed to the signed-in user so the dashboard name is not static
+  const [studentProfile, setStudentProfile] = useState<StudentProfileData>(() => getStudentProfile(user?.id));
   useEffect(() => {
-    const handleUpdate = () => setStudentProfile(getStudentProfile());
+    setStudentProfile(getStudentProfile(user?.id));
+    const handleUpdate = () => setStudentProfile(getStudentProfile(user?.id));
     window.addEventListener("student_profile_updated", handleUpdate);
     return () => window.removeEventListener("student_profile_updated", handleUpdate);
-  }, []);
+  }, [user?.id]);
+
+  const displayName = getDisplayName(user, activePersona, studentProfile) || "Ashwood Member";
 
   // Messaging state — unified real-time chat store with cross-persona sync
   const [messages, setMessages] = useState<UnifiedMessage[]>(getStoredMessages());
@@ -468,13 +471,7 @@ export function UnifiedDashboardPage() {
     const body = replyText.trim();
     setReplyText("");
 
-    const myName =
-      user?.user_metadata?.full_name ||
-      (activePersona === "student"
-        ? studentProfile.fullName
-        : activePersona === "alumni"
-          ? "Dr. Arjun Nair (Alumni)"
-          : "Prof. Gayatri Sen (Faculty)");
+    const myName = displayName;
 
     await sendUnifiedMessage({
       senderId: myId,
@@ -519,7 +516,7 @@ export function UnifiedDashboardPage() {
     setTimeout(() => {
       setIsAiDrafting(false);
       const partnerFirst = activePartner.full_name.split(" ")[0];
-      const draft = `Hello ${partnerFirst},\n\nI hope your work at ${activePartner.company || "your lab"} is progressing well. As a fellow member of the Ashwood network, I am reaching out regarding shared interests in ${activePartner.skills?.[0] || "computational systems"}. I would value 15 minutes of your perspective on career milestones and team openings.\n\nWarm regards,\n${studentProfile.fullName} (Ashwood '25)`;
+      const draft = `Hello ${partnerFirst},\n\nI hope your work at ${activePartner.company || "your lab"} is progressing well. As a fellow member of the Ashwood network, I am reaching out regarding shared interests in ${activePartner.skills?.[0] || "computational systems"}. I would value 15 minutes of your perspective on career milestones and team openings.\n\nWarm regards,\n${displayName}`;
       setReplyText(draft);
       toast.success("AI Warm Drafter: Contextual introduction compiled from Ashwood register.");
     }, 600);
@@ -580,7 +577,7 @@ export function UnifiedDashboardPage() {
         jobId: targetJob.id,
         jobTitle: targetJob.title,
         company: targetJob.company,
-        candidateName: user?.user_metadata?.full_name || studentProfile.fullName,
+        candidateName: displayName,
         note: referralNote.trim() || "Dispatched via Universal Dashboard",
         folioAttached: attachFolio,
         status: "Vouched & Forwarded",
@@ -672,9 +669,7 @@ export function UnifiedDashboardPage() {
               </span>
             </div>
             <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">
-              {activePersona === "student" && `Welcome, ${studentProfile.fullName}`}
-              {activePersona === "faculty" && "Welcome, Prof. Vikramaditya Roy"}
-              {activePersona === "alumni" && `Welcome, ${user?.user_metadata?.full_name || "Dr. Arjun Nair"}`}
+              Welcome, {displayName}
             </h2>
             <p className="text-xs text-ink-soft">
               Active Session: Verified Ashwood Credential · Semester Term Michaelmas 2026
@@ -1710,7 +1705,7 @@ export function UnifiedDashboardPage() {
                   </label>
                   {attachFolio && (
                     <div className="pl-6 font-mono text-[11px] text-muted-foreground space-y-0.5">
-                      <p>Candidate: <strong>{studentProfile.fullName}</strong> (Ashwood Class of {studentProfile.gradYear})</p>
+                      <p>Candidate: <strong>{displayName}</strong> (Ashwood Class of {studentProfile.gradYear})</p>
                       <p>Dossier: Verified coursework, GPA, and {studentProfile.projects.length} repository projects</p>
                     </div>
                   )}

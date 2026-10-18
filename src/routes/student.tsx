@@ -7,6 +7,8 @@ import {
   type StudentProfileData,
   type Project,
 } from "@/lib/studentProfile";
+import { useAuth } from "@/lib/auth";
+import { buildResumeMeta, classifyResume, extractTextFromResume } from "@/lib/resumeClassify";
 import { toast } from "sonner";
 import { MicrotasksManager } from "@/components/microtasks/MicrotasksManager";
 import {
@@ -63,7 +65,13 @@ const SKILL_SUGGESTIONS = [
 ];
 
 export function StudentProfilePage() {
-  const [profile, setProfile] = useState<StudentProfileData>(getStudentProfile());
+  const { user } = useAuth();
+  const [profile, setProfile] = useState<StudentProfileData>(() => getStudentProfile(user?.id));
+
+  const persist = (next: StudentProfileData) => {
+    setProfile(next);
+    saveStudentProfile(next, user?.id);
+  };
   const [activeView, setActiveView] = useState<"dossier" | "editor">("dossier");
   const [isSaving, setIsSaving] = useState(false);
 
@@ -85,44 +93,46 @@ export function StudentProfilePage() {
   const [projImpact, setProjImpact] = useState("");
 
   useEffect(() => {
+    setProfile(getStudentProfile(user?.id));
     const handleUpdate = () => {
-      setProfile(getStudentProfile());
+      setProfile(getStudentProfile(user?.id));
     };
     window.addEventListener("student_profile_updated", handleUpdate);
     return () => window.removeEventListener("student_profile_updated", handleUpdate);
-  }, []);
+  }, [user?.id]);
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Calculate human readable size
-    const sizeKb = Math.round(file.size / 1024);
-    const sizeStr = sizeKb > 1024 ? `${(sizeKb / 1024).toFixed(1)} MB` : `${sizeKb} KB`;
-
-    const updated: StudentProfileData = {
-      ...profile,
-      resume: {
-        fileName: file.name,
-        fileSize: sizeStr,
-        fileType: file.type || "application/pdf",
-        uploadedAt: new Date().toISOString(),
-        summaryNote: `Official undergraduate curriculum vitae uploaded for academic year 2025–2026.`,
-      },
-    };
-
-    setProfile(updated);
-    saveStudentProfile(updated);
-    toast.success(`Resume "${file.name}" successfully attached to your student folio.`);
+    try {
+      toast.message("Reading resume and classifying skills & projects…");
+      const text = await extractTextFromResume(file);
+      const classified = text.trim() ? await classifyResume(text) : { skills: [], projects: [], source: "local" as const };
+      const updated: StudentProfileData = {
+        ...profile,
+        headline: classified.headline || profile.headline,
+        github: classified.github || profile.github,
+        linkedin: classified.linkedin || profile.linkedin,
+        skills: classified.skills.length ? classified.skills : profile.skills,
+        projects: classified.projects.length ? classified.projects : profile.projects,
+        resume: buildResumeMeta(
+          file,
+          `Classified ${classified.skills.length} skills and ${classified.projects.length} projects from this resume.`,
+        ),
+      };
+      persist(updated);
+      toast.success(`Resume "${file.name}" attached. Skills and projects updated from the document.`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not read that resume.");
+    }
   };
 
   const handleRemoveResume = () => {
-    const updated: StudentProfileData = {
+    persist({
       ...profile,
       resume: null,
-    };
-    setProfile(updated);
-    saveStudentProfile(updated);
+    });
     toast.info("Resume document removed from folio.");
   };
 
@@ -147,8 +157,7 @@ export function StudentProfilePage() {
       ],
     };
 
-    setProfile(updated);
-    saveStudentProfile(updated);
+    persist(updated);
     setNewSkillName("");
     toast.success(`Skill "${newSkillName.trim()}" added to your dossier.`);
   };
@@ -158,8 +167,7 @@ export function StudentProfilePage() {
       ...profile,
       skills: profile.skills.filter((s) => s.name !== skillName),
     };
-    setProfile(updated);
-    saveStudentProfile(updated);
+    persist(updated);
   };
 
   const handleQuickAddSkill = (skill: string) => {
@@ -178,8 +186,7 @@ export function StudentProfilePage() {
         },
       ],
     };
-    setProfile(updated);
-    saveStudentProfile(updated);
+    persist(updated);
     toast.success(`Added ${skill}`);
   };
 
@@ -207,8 +214,7 @@ export function StudentProfilePage() {
       projects: [newProj, ...profile.projects],
     };
 
-    setProfile(updated);
-    saveStudentProfile(updated);
+    persist(updated);
     setIsProjectModalOpen(false);
 
     // Reset modal form
@@ -228,8 +234,7 @@ export function StudentProfilePage() {
       ...profile,
       projects: profile.projects.filter((p) => p.id !== projId),
     };
-    setProfile(updated);
-    saveStudentProfile(updated);
+    persist(updated);
     toast.info("Project removed from portfolio.");
   };
 
@@ -237,7 +242,7 @@ export function StudentProfilePage() {
     e.preventDefault();
     setIsSaving(true);
     setTimeout(() => {
-      saveStudentProfile(profile);
+      persist(profile);
       setIsSaving(false);
       toast.success("Student dossier saved and synchronized with the college register.");
       setActiveView("dossier");

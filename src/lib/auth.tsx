@@ -14,6 +14,7 @@ export interface AuthState {
   signOut: () => Promise<void>;
   signInWithOAuth: (provider: "google" | "github" | "linkedin", role?: AppRole) => Promise<{ error?: unknown }>;
   signInAsDemo: (role: AppRole, name?: string) => void;
+  updateProfile: (data: { full_name: string }) => Promise<void>;
 }
 
 const DEMO_USER_KEY = "ashwood_demo_auth_user";
@@ -29,6 +30,7 @@ const AuthCtx = createContext<AuthState>({
   signOut: async () => {},
   signInWithOAuth: async () => ({}),
   signInAsDemo: () => {},
+  updateProfile: async () => {},
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -167,6 +169,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setCurrentRole(role);
   };
 
+  const updateProfile = async (data: { full_name: string }) => {
+    if (!user) return;
+    const nextMeta = { ...user.user_metadata, ...data };
+    if (user.id.startsWith("demo-")) {
+      const nextUser = { ...user, user_metadata: nextMeta } as User;
+      setUser(nextUser);
+      localStorage.setItem(DEMO_USER_KEY, JSON.stringify({ user: nextUser, role: currentRole }));
+      return;
+    }
+    await supabase.auth.updateUser({ data: { full_name: data.full_name } });
+    const { data: refreshed } = await supabase.auth.getUser();
+    if (refreshed.user) setUser(refreshed.user);
+    else setUser({ ...user, user_metadata: nextMeta } as User);
+  };
+
   const signOut = async () => {
     localStorage.removeItem(DEMO_USER_KEY);
     localStorage.removeItem(PENDING_ROLE_KEY);
@@ -188,6 +205,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signOut,
         signInWithOAuth,
         signInAsDemo,
+        updateProfile,
       }}
     >
       {children}

@@ -12,6 +12,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AuthProvider } from "@/lib/auth";
 import { ThemeProvider } from "@/lib/theme";
 import { Header, Footer } from "@/components/site/Chrome";
+import { OnboardingGate } from "@/components/site/OnboardingGate";
 import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
@@ -89,6 +90,7 @@ function RootComponent() {
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <ThemeProvider>
         <AuthProvider>
+          <OnboardingGate />
           <a href="#main" className="sr-only focus:not-sr-only">Skip to content</a>
           <Header />
           <main id="main"><Outlet /></main>

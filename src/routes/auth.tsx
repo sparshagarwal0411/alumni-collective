@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router"
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, type AppRole } from "@/lib/auth";
+import { needsOnboarding } from "@/lib/studentProfile";
 import { Btn, Section } from "@/components/site/ui";
 import { GraduationCap, Landmark, Briefcase, Sparkles, Check } from "lucide-react";
 import { toast } from "sonner";
@@ -45,7 +46,7 @@ const ROLES: { id: AppRole; title: string; subtitle: string; icon: typeof Gradua
 ];
 
 function AuthPage() {
-  const { user, signInWithOAuth, signInAsDemo } = useAuth();
+  const { user, currentRole, signInWithOAuth, signInAsDemo } = useAuth();
   const navigate = useNavigate();
   const search = useSearch({ from: "/auth" });
   const redirectTarget = search.redirect || "/dashboard";
@@ -59,10 +60,13 @@ function AuthPage() {
   const [msg, setMsg] = useState<{ t: "ok" | "err"; m: string } | null>(null);
 
   useEffect(() => {
-    if (user) {
-      navigate({ to: redirectTarget as any, replace: true });
+    if (!user) return;
+    if (needsOnboarding(user, currentRole)) {
+      navigate({ to: "/onboard", search: { redirect: redirectTarget }, replace: true });
+      return;
     }
-  }, [user, navigate, redirectTarget]);
+    navigate({ to: redirectTarget as "/dashboard", replace: true } as never);
+  }, [user, currentRole, navigate, redirectTarget]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -138,7 +142,7 @@ function AuthPage() {
   const handleDemoSignIn = (role: AppRole) => {
     signInAsDemo(role);
     toast.success(`Signed in as ${role.toUpperCase()} (Live Demo Mode)`);
-    navigate({ to: redirectTarget as any, replace: true });
+    navigate({ to: "/onboard", search: { redirect: redirectTarget }, replace: true });
   };
 
   return (
