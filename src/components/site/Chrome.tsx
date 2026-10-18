@@ -22,14 +22,15 @@ function ThemeToggle({ className = "" }: { className?: string }) {
   );
 }
 
-const NAV = [
-  // { to: "/dashboard", label: "Dashboard" },
+const PUBLIC_NAV = [
   { to: "/directory", label: "Directory" },
-  // { to: "/jobs", label: "Jobs" },
-  // { to: "/student", label: "Student Folio" },
-  // { to: "/communities", label: "Communities" }, 
   { to: "/events", label: "Events" },
+  { to: "/updates", label: "Updates" },
+] as const;
+
+const AUTH_NAV = [
   { to: "/network", label: "Network" },
+  { to: "/events", label: "Events" },
   { to: "/updates", label: "Updates" },
 ] as const;
 
@@ -37,6 +38,8 @@ export function Header() {
   const { user, signOut, currentRole } = useAuth();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+
+  const navItems = user ? AUTH_NAV : PUBLIC_NAV;
 
   return (
     <header className="border-b border-rule">
@@ -46,7 +49,7 @@ export function Header() {
           <span className="eyebrow">Alumni · Est. {COLLEGE.est}</span>
         </Link>
         <nav aria-label="Primary" className="hidden items-center gap-6 text-sm lg:flex">
-          {NAV.map((n) => (
+          {navItems.map((n) => (
             <Link key={n.to} to={n.to} className="text-ink-soft hover:text-foreground" activeProps={{ className: "text-foreground underline underline-offset-8 decoration-accent" }}>
               {n.label}
             </Link>
@@ -58,7 +61,7 @@ export function Header() {
                 className="text-ink-soft hover:text-foreground"
                 activeProps={{ className: "text-foreground underline underline-offset-8 decoration-accent" }}
               >
-                Bounty
+                Microtasks
               </Link>
               <Link
                 to="/messages"
@@ -106,12 +109,12 @@ export function Header() {
       {open && (
         <nav id="mnav" aria-label="Mobile" className="border-t border-rule px-5 py-4 lg:hidden" onClick={() => setOpen(false)}>
           <ul className="grid gap-3 font-display text-2xl">
-            {NAV.map((n) => (
+            {navItems.map((n) => (
               <li key={n.to}><Link to={n.to}>{n.label}</Link></li>
             ))}
             {user ? (
               <>
-                <li><Link to="/tasks">Bounty</Link></li>
+                <li><Link to="/tasks">Microtasks</Link></li>
                 <li><Link to="/messages">Messages</Link></li>
                 <li><Link to="/dashboard" className="text-accent">Dashboard ({currentRole})</Link></li>
                 <li><button onClick={() => signOut().then(() => navigate({ to: "/", replace: true }))}>Sign out</button></li>

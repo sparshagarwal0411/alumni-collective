@@ -9,6 +9,7 @@ import {
 } from "@/lib/studentProfile";
 import { toast } from "sonner";
 import { MicrotasksManager } from "@/components/microtasks/MicrotasksManager";
+import { OmniParserModal } from "@/components/onboarding/OmniParserModal";
 import {
   FileText,
   Upload,
@@ -66,6 +67,7 @@ export function StudentProfilePage() {
   const [profile, setProfile] = useState<StudentProfileData>(getStudentProfile());
   const [activeView, setActiveView] = useState<"dossier" | "editor">("dossier");
   const [isSaving, setIsSaving] = useState(false);
+  const [isOmniModalOpen, setIsOmniModalOpen] = useState(false);
 
   // New skill input state
   const [newSkillName, setNewSkillName] = useState("");
@@ -292,6 +294,14 @@ export function StudentProfilePage() {
           <div className="flex items-center gap-2">
             <button
               type="button"
+              onClick={() => setIsOmniModalOpen(true)}
+              className="inline-flex items-center gap-1.5 border border-accent bg-accent/10 px-3 py-1.5 font-mono text-xs font-semibold text-accent hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer shadow-xs"
+            >
+              <Sparkles className="h-3.5 w-3.5" />
+              Omni-Parser (AI Resume)
+            </button>
+            <button
+              type="button"
               onClick={handleCopyLink}
               className="inline-flex items-center gap-1.5 border border-rule bg-paper px-3 py-1.5 hover:border-foreground transition-colors"
             >
@@ -480,10 +490,18 @@ export function StudentProfilePage() {
                   <div className="flex flex-wrap items-center gap-3">
                     <button
                       type="button"
+                      onClick={() => setIsOmniModalOpen(true)}
+                      className="inline-flex items-center gap-1.5 border border-accent bg-accent/10 px-4 py-2.5 text-xs uppercase tracking-widest text-accent hover:bg-accent hover:text-accent-foreground font-semibold cursor-pointer shadow-xs"
+                    >
+                      <Sparkles className="h-3.5 w-3.5" />
+                      Auto-Extract via Omni-Parser
+                    </button>
+                    <button
+                      type="button"
                       onClick={() => {
                         toast.success(`Opening ${profile.resume?.fileName}...`);
                       }}
-                      className="inline-flex items-center gap-2 bg-primary px-5 py-2.5 text-xs uppercase tracking-widest text-primary-foreground hover:bg-accent transition-colors font-medium"
+                      className="inline-flex items-center gap-2 bg-primary px-5 py-2.5 text-xs uppercase tracking-widest text-primary-foreground hover:bg-accent transition-colors font-medium cursor-pointer"
                     >
                       <Download className="h-3.5 w-3.5" />
                       Download Resume
@@ -491,7 +509,7 @@ export function StudentProfilePage() {
                     <button
                       type="button"
                       onClick={() => setActiveView("editor")}
-                      className="border border-rule px-4 py-2.5 text-xs uppercase tracking-widest text-muted-foreground hover:border-foreground hover:text-foreground"
+                      className="border border-rule px-4 py-2.5 text-xs uppercase tracking-widest text-muted-foreground hover:border-foreground hover:text-foreground cursor-pointer"
                     >
                       Replace File
                     </button>
@@ -503,14 +521,24 @@ export function StudentProfilePage() {
                   <p className="text-sm text-ink-soft">
                     No resume document has been uploaded yet. Upload your PDF so alumni recruiters can download it.
                   </p>
-                  <button
-                    type="button"
-                    onClick={() => setActiveView("editor")}
-                    className="inline-flex items-center gap-1.5 bg-primary px-4 py-2 text-xs uppercase tracking-widest text-primary-foreground hover:bg-accent"
-                  >
-                    <Upload className="h-3.5 w-3.5" />
-                    Upload Resume Now
-                  </button>
+                  <div className="flex flex-wrap items-center justify-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setIsOmniModalOpen(true)}
+                      className="inline-flex items-center gap-1.5 border border-accent bg-accent px-4 py-2 text-xs uppercase tracking-widest text-accent-foreground font-semibold hover:opacity-90 cursor-pointer shadow-xs"
+                    >
+                      <Sparkles className="h-3.5 w-3.5" />
+                      Auto-Extract via Omni-Parser
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setActiveView("editor")}
+                      className="inline-flex items-center gap-1.5 bg-primary px-4 py-2 text-xs uppercase tracking-widest text-primary-foreground hover:bg-accent cursor-pointer"
+                    >
+                      <Upload className="h-3.5 w-3.5" />
+                      Upload Resume File
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -1144,6 +1172,13 @@ export function StudentProfilePage() {
             </div>
           </div>
         )}
+
+        {/* Omni-Parser Dual-AI Ingestion Modal */}
+        <OmniParserModal
+          isOpen={isOmniModalOpen}
+          onOpenChange={setIsOmniModalOpen}
+          onCompleted={() => setProfile(getStudentProfile())}
+        />
       </Section>
     </>
   );

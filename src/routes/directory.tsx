@@ -1,19 +1,24 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { z } from "zod";
+import { useState } from "react";
+import { Table, LayoutList, MessageSquare, ExternalLink } from "lucide-react";
 import { Empty, ErrorNote, Loading, Monogram, PageHead, SampleTag, Section } from "@/components/site/ui";
 import { CompanyLogo } from "@/components/companies/CompanyLogo";
 import { getAlumniPortrait } from "@/lib/portraits";
 import { profilesQuery } from "@/lib/queries";
 
-const search = z.object({
-  q: z.string().optional().catch(undefined),
-  dept: z.string().optional().catch(undefined),
-  mentor: z.boolean().optional().catch(undefined),
-});
+export interface DirectorySearch {
+  q?: string;
+  dept?: string;
+  mentor?: boolean;
+}
 
 export const Route = createFileRoute("/directory")({
-  validateSearch: search,
+  validateSearch: (search: Record<string, unknown>): DirectorySearch => ({
+    q: typeof search.q === "string" ? search.q : undefined,
+    dept: typeof search.dept === "string" ? search.dept : undefined,
+    mentor: search.mentor === true || search.mentor === "true" ? true : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Alumni Directory — Ashwood College" },
@@ -25,12 +30,9 @@ export const Route = createFileRoute("/directory")({
   component: Directory,
 });
 
-import { useState } from "react";
-import { Table, LayoutList, MessageSquare, ExternalLink, ShieldCheck } from "lucide-react";
-
 function Directory() {
   const { q = "", dept = "", mentor = false } = Route.useSearch();
-  const navigate = Route.useNavigate();
+  const navigate = useNavigate();
   const { data, isLoading, error } = useQuery(profilesQuery);
   const [viewMode, setViewMode] = useState<"table" | "list">("table");
 
@@ -48,8 +50,8 @@ function Directory() {
           .includes(needle)),
   );
 
-  const set = (patch: Partial<z.infer<typeof search>>) =>
-    navigate({ to: ".", search: (prev) => ({ ...prev, ...patch }), replace: true });
+  const set = (patch: Partial<DirectorySearch>) =>
+    navigate({ to: "/directory", search: (prev: DirectorySearch) => ({ ...prev, ...patch }), replace: true });
 
   return (
     <>
@@ -127,7 +129,7 @@ function Directory() {
                               {portrait ? (
                                 <img src={portrait} alt={p.full_name} className="h-8 w-8 rounded-full object-cover object-top border border-rule shrink-0" />
                               ) : (
-                                <Monogram name={p.full_name} className="h-8 w-8 text-[10px] shrink-0" />
+                                <Monogram name={p.full_name} size="sm" />
                               )}
                               <span className="truncate">{p.full_name || "Unnamed"}</span>
                               <SampleTag show={p.is_sample} />

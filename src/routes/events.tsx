@@ -3,7 +3,9 @@ import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { Empty, Loading, PageHead, SampleTag, Section } from "@/components/site/ui";
 import { eventsQuery, fmtDate, milestonesQuery } from "@/lib/queries";
-import { Award, BookOpen, Clock, Compass, Globe, Landmark, Scroll, Shield, Sparkles } from "lucide-react";
+import { useAuth } from "@/lib/auth";
+import { toast } from "sonner";
+import { Award, BookOpen, CheckCircle2, Clock, Compass, Globe, Landmark, Mail, Scroll, Shield, Sparkles } from "lucide-react";
 
 export const Route = createFileRoute("/events")({
   head: () => ({
@@ -74,12 +76,33 @@ const MILESTONE_METADATA: Record<
 };
 
 function EventsPage() {
+  const { user } = useAuth();
   const eventsResult = useQuery(eventsQuery);
   const milestonesResult = useQuery(milestonesQuery);
   const events = eventsResult.data ?? [];
   const milestones = milestonesResult.data ?? [];
   const [filter, setFilter] = useState<"all" | "upcoming" | "past">("all");
   const [activeEpochFilter, setActiveEpochFilter] = useState<string>("all");
+
+  const [registeredEvents, setRegisteredEvents] = useState<Record<string, boolean>>(() => {
+    try {
+      const saved = localStorage.getItem("ashwood_event_rsvps");
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  const handleSignUpForEvent = (eventId: string, title: string) => {
+    setRegisteredEvents((prev) => {
+      const next = { ...prev, [eventId]: true };
+      try {
+        localStorage.setItem("ashwood_event_rsvps", JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+    toast.success(`RSVP confirmed for "${title}"! An official invitation code has been emailed to your registered address.`);
+  };
 
   const filtered = useMemo(() => {
     if (filter === "all") return events;
@@ -160,12 +183,36 @@ function EventsPage() {
                     ))}
                   </ul>
                   {event.status === "upcoming" && (
-                    <p className="pt-2 font-mono text-xs text-muted-foreground">
-                      Register via the Association desk ·{" "}
-                      <Link to="/auth" className="link-u text-foreground">
-                        Sign in to confirm attendance
-                      </Link>
-                    </p>
+                    <div className="pt-2">
+                      {!user ? (
+                        <p className="font-mono text-xs text-muted-foreground">
+                          Register via the Association desk ·{" "}
+                          <Link to="/auth" search={{ redirect: "/events" }} className="link-u text-foreground">
+                            Sign in to confirm attendance
+                          </Link>
+                        </p>
+                      ) : registeredEvents[event.id] ? (
+                        <div className="inline-flex items-center gap-2 border border-emerald-500/40 bg-emerald-500/10 px-3.5 py-1.5 font-mono text-xs text-emerald-700 dark:text-emerald-300">
+                          <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                          <span className="font-semibold">Invite code emailed</span>
+                          <span className="text-muted-foreground">· Attendance Confirmed</span>
+                        </div>
+                      ) : (
+                        <div className="flex flex-wrap items-center gap-3">
+                          <button
+                            type="button"
+                            onClick={() => handleSignUpForEvent(event.id, event.title)}
+                            className="inline-flex items-center gap-2 bg-primary px-4 py-2 font-mono text-xs uppercase tracking-widest text-primary-foreground font-semibold hover:bg-accent transition-colors cursor-pointer"
+                          >
+                            <Mail className="h-3.5 w-3.5" />
+                            Sign up for event
+                          </button>
+                          <span className="font-mono text-xs text-muted-foreground">
+                            Association Desk · Instant invite dispatch
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
               </article>

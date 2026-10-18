@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Empty, ErrorNote, Loading, Monogram, PageHead, SampleTag, Section } from "@/components/site/ui";
@@ -6,8 +6,9 @@ import { CompanyLogo } from "@/components/companies/CompanyLogo";
 import { profileQuery, tasksQuery } from "@/lib/queries";
 import { getAlumniPortrait } from "@/lib/portraits";
 import { toast } from "sonner";
-import { Calendar, CheckCircle2, Clock, MessageSquare, Send, UserCheck, X } from "lucide-react";
+import { Calendar, CheckCircle2, Clock, Lock, MessageSquare, Send, UserCheck, X } from "lucide-react";
 import { MicrotasksManager } from "@/components/microtasks/MicrotasksManager";
+import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/alumni/$id")({
   head: () => ({
@@ -30,6 +31,8 @@ const DEFAULT_TOPICS = [
 
 function ProfilePage() {
   const { id } = Route.useParams();
+  const navigate = useNavigate();
+  const { user, signInAsDemo } = useAuth();
   const profile = useQuery(profileQuery(id));
   const tasks = useQuery(tasksQuery);
 
@@ -136,17 +139,23 @@ function ProfilePage() {
               </div>
             )}
             <div className="flex flex-wrap gap-2 pt-2">
-              <Link
-                to="/messages"
-                className="bg-primary px-4 py-2 text-xs uppercase tracking-widest text-primary-foreground transition-colors hover:bg-accent"
-              >
-                Send Message
-              </Link>
               {p.open_to_mentor && (
                 <button
                   type="button"
-                  onClick={() => setIsMentorshipModalOpen(true)}
-                  className="border border-foreground bg-background px-4 py-2 text-xs uppercase tracking-widest text-foreground transition-colors hover:bg-foreground hover:text-background"
+                  onClick={() => {
+                    if (!user) {
+                      navigate({
+                        to: "/auth",
+                        search: {
+                          redirect: `/alumni/${p.id}`,
+                          intent: "mentorship",
+                        },
+                      });
+                      return;
+                    }
+                    setIsMentorshipModalOpen(true);
+                  }}
+                  className="bg-primary px-5 py-2 text-xs uppercase tracking-widest text-primary-foreground transition-colors hover:bg-accent cursor-pointer shadow-xs font-semibold font-mono"
                 >
                   Request Mentorship
                 </button>
@@ -187,12 +196,65 @@ function ProfilePage() {
 
             {/* Related Microtasks / Ledger */}
             <div className="border-t border-rule pt-8">
-              <MicrotasksManager
-                profileId={p.id}
-                rolePerspective="alumni"
-                title={`${p.full_name}'s Microtask Ledger`}
-                description={`Commissioned work and research reviews offered by ${p.full_name}. Verified completion awards 1 binary point.`}
-              />
+              <div className="relative">
+                {!user && (
+                  <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-background/85 backdrop-blur-[2px] p-6 text-center border border-rule">
+                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-accent/10 border border-accent/30 text-accent mb-4">
+                      <Lock className="h-6 w-6" />
+                    </div>
+                    <span className="eyebrow text-accent">Member Authentication Required</span>
+                    <h3 className="font-display text-2xl md:text-3xl text-foreground mt-1">
+                      Sign In to Access Microtasks
+                    </h3>
+                    <p className="mt-2 max-w-md text-sm text-ink-soft leading-relaxed">
+                      Microtask claims, proof-of-work submissions, and institutional credibility awards are restricted to verified Ashwood members.
+                    </p>
+                    <div className="mt-5 flex flex-col sm:flex-row items-center gap-3">
+                      <Link
+                        to="/auth"
+                        search={{ redirect: `/alumni/${p.id}`, intent: "microtask" }}
+                        className="bg-primary px-6 py-2.5 font-mono text-xs uppercase tracking-widest text-primary-foreground font-semibold hover:bg-accent transition-colors shadow-xs"
+                      >
+                        Sign In to Access Ledger
+                      </Link>
+                    </div>
+                    <div className="flex items-center justify-center gap-2 pt-3 text-xs text-muted-foreground font-mono">
+                      <span>Quick test:</span>
+                      <button
+                        type="button"
+                        onClick={() => signInAsDemo("student")}
+                        className="link-u text-foreground hover:text-accent cursor-pointer"
+                      >
+                        Student
+                      </button>
+                      <span>·</span>
+                      <button
+                        type="button"
+                        onClick={() => signInAsDemo("faculty")}
+                        className="link-u text-foreground hover:text-accent cursor-pointer"
+                      >
+                        Faculty
+                      </button>
+                      <span>·</span>
+                      <button
+                        type="button"
+                        onClick={() => signInAsDemo("alumni")}
+                        className="link-u text-foreground hover:text-accent cursor-pointer"
+                      >
+                        Alum
+                      </button>
+                    </div>
+                  </div>
+                )}
+                <div className={!user ? "select-none pointer-events-none filter blur-[1.5px] opacity-40 min-h-[320px]" : ""}>
+                  <MicrotasksManager
+                    profileId={p.id}
+                    rolePerspective="alumni"
+                    title={`${p.full_name}'s Microtask Ledger`}
+                    description={`Commissioned work and research reviews offered by ${p.full_name}. Verified completion awards 1 binary point.`}
+                  />
+                </div>
+              </div>
             </div>
           </div>
 

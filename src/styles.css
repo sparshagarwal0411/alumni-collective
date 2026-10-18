@@ -41,10 +41,20 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
+  --color-surface1: var(--surface1);
+  --color-surface2: var(--surface2);
+  --color-text-primary: var(--text-primary);
+  --color-text-muted: var(--text-muted);
+  --color-border-ui: var(--border-ui);
 }
 
 :root {
   color-scheme: light;
+  --surface1: var(--card);
+  --surface2: var(--paper);
+  --text-primary: var(--foreground);
+  --text-muted: var(--ink-soft);
+  --border-ui: var(--rule);
   --radius: 0.2rem;
   --background: oklch(0.972 0.009 84);
   --paper: oklch(0.948 0.013 82);
@@ -270,5 +280,27 @@
 .marquee-group:hover .animate-marquee-flow-slow,
 .marquee-group:hover .animate-marquee-flow-xslow {
   animation-play-state: paused;
+}
+
+.dark {
+  --surface1: var(--card);
+  --surface2: var(--paper);
+  --text-primary: var(--foreground);
+  --text-muted: var(--ink-soft);
+  --border-ui: var(--rule);
+}
+
+.spatial-canvas-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.spatial-canvas-container canvas {
+  outline: none;
+}
+
+.cursor-col-resize {
+  cursor: col-resize;
 }
 

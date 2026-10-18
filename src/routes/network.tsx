@@ -1,379 +1,888 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useState, useMemo } from "react";
-import { Monogram, PageHead, SampleTag, Section } from "@/components/site/ui";
-import { profilesQuery, connectionsQuery } from "@/lib/queries";
+import { useState, useMemo, useEffect } from "react";
+import { Monogram, PageHead, SampleTag } from "@/components/site/ui";
+import { CompanyLogo } from "@/components/companies/CompanyLogo";
+import { profilesQuery } from "@/lib/queries";
 import type { Profile } from "@/lib/mockData";
-import { AlumniDirectoryMap } from "@/components/network/AlumniDirectoryMap";
+import { SpatialCanvas } from "@/components/graph/SpatialCanvas";
+import { dijkstraService } from "@/services/dijkstraService";
+import { useNetworkStore } from "@/store/useNetworkStore";
+import { getInitialSpatialGraphData, SEED_PROFILES } from "@/data/seedData";
+import { CANONICAL_SOCIETIES } from "@/data/nsutTaxonomy";
+import { useAuth } from "@/lib/auth";
+import type { GraphNode, GraphLink } from "@/types/database";
+import { CredibilityAuditPopover } from "@/components/network/CredibilityAuditPopover";
+import {
+  Search,
+  Crosshair,
+  MessageSquare,
+  ExternalLink,
+  Sparkles,
+  Route as RouteIcon,
+  GraduationCap,
+  Building2,
+  MapPin,
+  CheckCircle2,
+  ChevronRight,
+  Layers,
+  Award,
+  ArrowLeft,
+  Users,
+  Briefcase,
+  ShieldCheck,
+} from "lucide-react";
 
 export const Route = createFileRoute("/network")({
   head: () => ({
     meta: [
-      { title: "Relational Network Graph — Ashwood College" },
-      { name: "description", content: "Explore the living web of relationships, mentorship ties, and collaborative projects across alumni generations." },
+      { title: "Directory & Relational Network Graph — NSUT Archive" },
+      {
+        name: "description",
+        content: "Interactive 3D WebGL knowledge graph integrated with the complete alumni directory and live Dijkstra pathfinding.",
+      },
     ],
   }),
-  component: NetworkPage,
+  component: MergedDirectoryNetworkPage,
 });
 
-function NetworkPage() {
+export function MergedDirectoryNetworkPage() {
+  const navigate = useNavigate();
   const profilesResult = useQuery(profilesQuery);
-  const connectionsResult = useQuery(connectionsQuery);
+  const rawPeople = profilesResult.data ?? [];
 
-  const people = profilesResult.data ?? [];
-  const connections = connectionsResult.data ?? [];
+  const { user, currentRole } = useAuth();
 
+  // Auth-aware current user persona node
+  const currentUserId = useMemo(() => {
+    if (!user || currentRole === "faculty") return null;
+    if (currentRole === "alumni") return "p-arjun-nair";
+    return "usr-stud-01"; // student or default
+  }, [user, currentRole]);
+
+  // Filter to canonical full-fledged profiles originally in final repo (+ active student persona)
+  const people = useMemo(() => {
+    return rawPeople.filter(
+      (p) => p.id.startsWith("p-") || p.id === "usr-stud-01"
+    );
+  }, [rawPeople]);
+
+  // Filter State
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCompany, setSelectedCompany] = useState<string>("all");
   const [selectedDept, setSelectedDept] = useState<string>("all");
-  const [selectedCity, setSelectedCity] = useState<string | null>(null);
-  const [selectedProfileId, setSelectedProfileId] = useState<string | null>("p-arjun-nair");
+  const [selectedSociety, setSelectedSociety] = useState<string>("all");
+  const [onlyMentors, setOnlyMentors] = useState<boolean>(false);
 
-  // Unique companies and departments
-  const companies = useMemo(() => {
-    return Array.from(new Set(people.map((p) => p.company).filter(Boolean))) as string[];
-  }, [people]);
+  // Splitter Resizing State
+  const [sidebarWidth, setSidebarWidth] = useState<number>(440);
+  const [isDragging, setIsDragging] = useState<boolean>(false);
 
-  const departments = useMemo(() => {
-    return Array.from(new Set(people.map((p) => p.department).filter(Boolean))) as string[];
-  }, [people]);
+  // Dijkstra State
+  const [shortestPathSteps, setShortestPathSteps] = useState<
+    Array<{ id: string; name: string; role: string; company?: string; weight: number }>
+  >([]);
+  const [totalResistance, setTotalResistance] = useState<number>(0);
+  const [isComputingPath, setIsComputingPath] = useState<boolean>(false);
 
-  // Filtered people
+  // Zustand Store sync
+  const {
+    paneState,
+    focusedNodeId,
+    hoveredNodeId,
+    setFocusedNode,
+    setHoveredNode,
+    setPaneState,
+    clearPath,
+    setFilter,
+    resetFilters,
+  } = useNetworkStore();
+
+  // 1. Initial 3D Spatial Graph Data from canonical seed (only full-fledged profiles)
+  const initialGraphData = useMemo(() => getInitialSpatialGraphData(), []);
+
+  // Use only canonical full-fledged nodes
+  const graphNodes = useMemo<GraphNode[]>(() => {
+    return initialGraphData.nodes;
+  }, [initialGraphData]);
+
+  // Use only canonical relational links with anti-farming resistance weights
+  const graphLinks = useMemo<GraphLink[]>(() => {
+    return initialGraphData.links;
+  }, [initialGraphData]);
+
+  // Companies list (only employers that appear in the canonical graph nodes)
+  const allCompanies = useMemo(() => {
+    return Array.from(
+      new Set(graphNodes.map((n) => n.company).filter((c): c is string => Boolean(c)))
+    ).sort();
+  }, [graphNodes]);
+
+  // Departments list (only branches that appear in the canonical graph nodes)
+  const allDepartments = useMemo(() => {
+    return Array.from(
+      new Set(graphNodes.map((n) => n.branch).filter((b): b is string => Boolean(b)))
+    ).sort();
+  }, [graphNodes]);
+
+  // Societies list (20 canonical NSUT student societies)
+  const allSocieties = useMemo(() => {
+    return CANONICAL_SOCIETIES;
+  }, []);
+
+  // Filtered Directory Scholars
   const filteredPeople = useMemo(() => {
-    const q = searchQuery.toLowerCase();
+    const q = searchQuery.toLowerCase().trim();
     return people.filter((p) => {
-      const matchQuery =
-        !q ||
-        [p.full_name, p.company, p.headline, p.department, p.city, ...(p.skills || [])]
+      // 1. Text Search
+      if (q) {
+        const hay = [
+          p.full_name,
+          p.company,
+          p.headline,
+          p.department,
+          p.city,
+          String(p.grad_year ?? ""),
+          ...(p.skills || []),
+          ...(p.societies || []),
+        ]
           .join(" ")
-          .toLowerCase()
-          .includes(q);
-      const matchCompany = selectedCompany === "all" || p.company === selectedCompany;
-      const matchDept = selectedDept === "all" || p.department === selectedDept;
-      const matchCity =
-        !selectedCity || (p.city && p.city.toLowerCase().includes(selectedCity.toLowerCase()));
-      return matchQuery && matchCompany && matchDept && matchCity;
+          .toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+
+      // 2. Company Filter
+      if (selectedCompany !== "all") {
+        if (!p.company || p.company.toLowerCase() !== selectedCompany.toLowerCase()) {
+          return false;
+        }
+      }
+
+      // 3. Department Filter
+      if (selectedDept !== "all") {
+        if (!p.department || p.department.toLowerCase() !== selectedDept.toLowerCase()) {
+          return false;
+        }
+      }
+
+      // 4. Society Filter
+      if (selectedSociety !== "all") {
+        const socMatch = (p.societies || []).some(
+          (s) => s.toLowerCase().includes(selectedSociety.toLowerCase()) || selectedSociety.toLowerCase().includes(s.toLowerCase())
+        );
+        if (!socMatch) return false;
+      }
+
+      // 5. Mentor Filter
+      if (onlyMentors && !p.open_to_mentor) {
+        return false;
+      }
+
+      return true;
     });
-  }, [people, searchQuery, selectedCompany, selectedDept, selectedCity]);
+  }, [people, searchQuery, selectedCompany, selectedDept, selectedSociety, onlyMentors]);
 
-  const activeProfile = useMemo(() => {
-    return people.find((p) => p.id === selectedProfileId) || people[0] || null;
-  }, [people, selectedProfileId]);
+  // Focused Profile in Profile View
+  const focusedProfile = useMemo(() => {
+    if (!focusedNodeId) return null;
+    return people.find((p) => p.id === focusedNodeId) || null;
+  }, [people, focusedNodeId]);
 
-  // Compute connections for active profile
-  const activeConnections = useMemo(() => {
-    if (!activeProfile) return [];
-    return connections
-      .filter((c) => c.requester === activeProfile.id || c.addressee === activeProfile.id)
-      .map((c) => {
-        const otherId = c.requester === activeProfile.id ? c.addressee : c.requester;
-        const otherPerson = people.find((p) => p.id === otherId);
-        return {
-          connection: c,
-          person: otherPerson,
-          points: c.points ?? 5,
-        };
-      })
-      .filter((item): item is { connection: typeof connections[0]; person: Profile; points: number } => Boolean(item.person));
-  }, [activeProfile, connections, people]);
+  // Select profile from list card click
+  const handleSelectProfile = (person: Profile) => {
+    setFocusedNode(person.id);
+    setPaneState("PROFILE_VIEW");
+  };
 
-  // Simulated Dijkstra path from logged in student to selected profile
-  const shortestPath = useMemo(() => {
-    if (!activeProfile) return [];
-    if (activeProfile.id === "p-arjun-nair") {
-      return [
-        { name: "You (Active Student)", role: "Class of '25 · CSE", weight: 0 },
-        { name: "Vikram Choudhury", role: "Class of '16 · Zerodha Head of Infra", weight: 0.18 },
-        { name: "Dr. Arjun Nair", role: "Class of '12 · Anthropic Principal Architect", weight: 0.09 },
-      ];
+  // Back to directory list
+  const handleBackToList = () => {
+    setPaneState("LIST_VIEW");
+    setFocusedNode(null);
+    clearPath();
+  };
+
+  // Handle node selection from 3D Canvas
+  const handleGraphNodeSelect = (node: GraphNode | null) => {
+    if (node) {
+      setFocusedNode(node.id);
+      setPaneState("PROFILE_VIEW");
+    } else {
+      setFocusedNode(null);
+      setPaneState("LIST_VIEW");
+      clearPath();
     }
-    if (activeProfile.id === "p-priya-ramanathan") {
-      return [
-        { name: "You (Active Student)", role: "Class of '25 · CSE", weight: 0 },
-        { name: "Tara Deshmukh", role: "Class of '19 · Linear Design Director", weight: 0.22 },
-        { name: "Priya Ramanathan", role: "Class of '14 · Stripe VP of Product", weight: 0.12 },
-      ];
+  };
+
+  // Career history timeline entries
+  const careerEntries = useMemo(() => {
+    if (!focusedProfile) return [];
+    const seedP = SEED_PROFILES.find((sp) => sp.id === focusedProfile.id);
+    const expHist = seedP?.experience_history || focusedProfile.experience_history;
+    if (expHist && expHist.length > 0) {
+      return expHist.map((exp: any, i: number) => ({
+        company: exp.company,
+        role: exp.title,
+        period: `${exp.start_year} – ${exp.end_year ? exp.end_year : "Present"}`,
+        isCurrent: i === 0,
+      }));
     }
-    return [
-      { name: "You (Active Student)", role: "Class of '25", weight: 0 },
-      { name: "Dr. Arjun Nair", role: "Class of '12 · Core Faculty Mentor", weight: 0.19 },
-      { name: activeProfile.full_name, role: activeProfile.headline || activeProfile.role_title || "Alumnus", weight: 0.14 },
-    ];
-  }, [activeProfile]);
+
+    const entries = [];
+    if (focusedProfile.company) {
+      entries.push({
+        company: focusedProfile.company,
+        role: focusedProfile.role_title || focusedProfile.headline || "Professional Alumnus",
+        period: `${(focusedProfile.grad_year || 2022) + 1} – Present`,
+        isCurrent: true,
+      });
+    }
+    entries.push({
+      company: "Netaji Subhas University of Technology",
+      role: `Student (${focusedProfile.department || "Engineering"})`,
+      period: `${(focusedProfile.grad_year || 2022) - 4} – ${focusedProfile.grad_year || 2022}`,
+      isCurrent: false,
+    });
+    return entries;
+  }, [focusedProfile]);
+
+  // True mutual societies between current student and focused alumnus
+  const trueMutualSocieties = useMemo(() => {
+    if (!focusedProfile) return [];
+    const currentProfile = people.find((p) => p.id === currentUserId);
+    if (!currentProfile) return [];
+    const currentSocNames = (currentProfile.societies || []).map((s: string) => s.toLowerCase());
+    return (focusedProfile.societies || []).filter((s: string) =>
+      currentSocNames.some((cs: string) => cs.includes(s.toLowerCase()) || s.toLowerCase().includes(cs))
+    );
+  }, [focusedProfile, people, currentUserId]);
+
+  // Shared Ties & Campus Common Ground
+  const sharedTies = useMemo(() => {
+    if (!focusedProfile) return [];
+    const ties: string[] = [];
+    const currentProfile = people.find((p) => p.id === currentUserId);
+    if (!currentProfile) return ties;
+
+    if (currentProfile.department && focusedProfile.department && currentProfile.department === focusedProfile.department) {
+      ties.push(`Same Branch: ${currentProfile.department}`);
+    }
+
+    const currentSocs = (currentProfile.societies || []).map((s: string) => s.toLowerCase());
+    (focusedProfile.societies || []).forEach((s) => {
+      if (currentSocs.some((cs) => cs.includes(s.toLowerCase()) || s.toLowerCase().includes(cs))) {
+        ties.push(`Society: ${s}`);
+      }
+    });
+
+    const currentSkills = (currentProfile.skills || []).map((sk: string) => sk.toLowerCase());
+    (focusedProfile.skills || []).forEach((sk) => {
+      if (currentSkills.some((csk) => csk === sk.toLowerCase())) {
+        ties.push(`Skill: ${sk}`);
+      }
+    });
+
+    return ties;
+  }, [focusedProfile, people, currentUserId]);
+
+  // Compute Shortest Dijkstra Path whenever focusedProfile changes
+  useEffect(() => {
+    let isCancelled = false;
+
+    async function computePath() {
+      if (!focusedProfile || !currentUserId || focusedProfile.id === currentUserId) {
+        setShortestPathSteps([]);
+        setTotalResistance(0);
+        return;
+      }
+
+      setIsComputingPath(true);
+
+      try {
+        const result = await dijkstraService.findShortestPath(
+          currentUserId,
+          focusedProfile.id,
+          graphLinks
+        );
+
+        if (!isCancelled) {
+          if (result.path && result.path.length > 0) {
+            const steps = result.path.map((nodeId) => {
+              const matchedPerson = people.find((p) => p.id === nodeId);
+              const matchedNode = graphNodes.find((n) => n.id === nodeId);
+              return {
+                id: nodeId,
+                name: matchedPerson?.full_name || matchedNode?.name || nodeId,
+                role: nodeId === currentUserId ? "You (Student Builder)" : matchedPerson?.role_title || matchedPerson?.headline || "Alumnus",
+                company: matchedPerson?.company || matchedNode?.company,
+                weight: result.totalWeight,
+              };
+            });
+            setShortestPathSteps(steps);
+            setTotalResistance(result.totalWeight);
+          } else {
+            setShortestPathSteps([]);
+            setTotalResistance(0);
+          }
+        }
+      } catch (err) {
+        console.error("Dijkstra calculation error:", err);
+      } finally {
+        if (!isCancelled) setIsComputingPath(false);
+      }
+    }
+
+    computePath();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [focusedProfile, graphLinks, graphNodes, people, currentUserId]);
+
+  // Splitter drag event handlers
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDragging) return;
+      const newWidth = Math.max(340, Math.min(680, e.clientX));
+      setSidebarWidth(newWidth);
+    };
+
+    const handleMouseUp = () => {
+      if (isDragging) setIsDragging(false);
+    };
+
+    if (isDragging) {
+      window.addEventListener("mousemove", handleMouseMove);
+      window.addEventListener("mouseup", handleMouseUp);
+      document.body.style.cursor = "col-resize";
+      document.body.style.userSelect = "none";
+    } else {
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+    }
+
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [isDragging]);
 
   return (
-    <>
-      <PageHead
-        index="II."
-        eyebrow="Network"
-        title="The web of who knows whom."
-        lede="Navigate relational weight, mutual mentorship, and the shortest social path to any alumnus."
-      />
+    <div className="flex flex-col h-[calc(100vh-65px)] overflow-hidden bg-background">
+      {/* ─── STUDIO HEADER & MULTI-CRITERIA FILTER BAR ─── */}
+      <div className="border-b border-rule bg-paper px-4 py-3 shrink-0">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          {/* Eyebrow & Status */}
+          <div className="flex items-center gap-3">
+            <span className="font-mono text-[10px] uppercase tracking-widest text-accent font-semibold flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-full bg-accent animate-pulse" />
+              NSUT Relational Knowledge Graph // Directory Studio
+            </span>
+            <span className="hidden sm:inline-block text-xs text-muted-foreground">·</span>
+            <span className="hidden sm:inline-block font-mono text-[11px] text-muted-foreground">
+              {filteredPeople.length} Scholars Listed ({graphNodes.length} Nodes in 3D Space)
+            </span>
+          </div>
 
-      <Section className="mt-8">
-        {/* Workspace controls */}
-        <div className="grid gap-4 border-y border-foreground py-4 md:grid-cols-12 md:items-end">
-          <label className="md:col-span-5">
-            <div className="flex items-center justify-between">
-              <span className="eyebrow">Search Nodes</span>
-              {selectedCity && (
-                <button
-                  type="button"
-                  onClick={() => setSelectedCity(null)}
-                  className="font-mono text-[10px] text-accent hover:underline"
-                >
-                  Clear city: {selectedCity} ×
-                </button>
-              )}
-            </div>
+          {/* Formula pill */}
+          <div className="flex items-center gap-2 font-mono text-[10px] text-muted-foreground bg-background px-2.5 py-1 border border-rule">
+            <span className="text-accent font-semibold">Anti-Collusion Formula:</span>
+            <span>W = 1 / (min(5, pts)×5 + shared×2 + 0.1)</span>
+          </div>
+        </div>
+
+        {/* 4-Way Search & Filter Row */}
+        <div className="mt-2.5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-2.5 items-center">
+          {/* Search Box */}
+          <div className="lg:col-span-4 relative">
+            <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
             <input
               type="text"
-              placeholder="Search by name, research topic, or skill..."
+              placeholder="Search scholar by name, skills, company, city..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="field text-base"
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setFilter("searchQuery", e.target.value);
+              }}
+              className="w-full border border-rule bg-background pl-8 pr-3 py-1.5 font-mono text-xs text-foreground placeholder:text-muted-foreground outline-none focus:border-accent"
             />
-          </label>
+          </div>
 
-          <label className="md:col-span-3">
-            <span className="eyebrow">Employer Filter</span>
+          {/* Company Filter (90 Companies) */}
+          <div className="lg:col-span-3">
             <select
               value={selectedCompany}
-              onChange={(e) => setSelectedCompany(e.target.value)}
-              className="field text-sm"
+              onChange={(e) => {
+                const val = e.target.value;
+                setSelectedCompany(val);
+                setFilter("company", val === "all" ? null : val);
+              }}
+              className="w-full border border-rule bg-background px-2.5 py-1.5 font-mono text-xs text-foreground outline-none focus:border-accent"
             >
-              <option value="all">All Companies ({companies.length})</option>
-              {companies.map((c) => (
+              <option value="all">All Employers ({allCompanies.length})</option>
+              {allCompanies.map((c) => (
                 <option key={c} value={c}>
                   {c}
                 </option>
               ))}
             </select>
-          </label>
-          <label className="md:col-span-4">
-            <span className="eyebrow">Discipline / Branch</span>
+          </div>
+
+          {/* Department Filter (Branches) */}
+          <div className="lg:col-span-3">
             <select
               value={selectedDept}
-              onChange={(e) => setSelectedDept(e.target.value)}
-              className="field text-sm"
+              onChange={(e) => {
+                const val = e.target.value;
+                setSelectedDept(val);
+                setFilter("branch", val === "all" ? null : val);
+              }}
+              className="w-full border border-rule bg-background px-2.5 py-1.5 font-mono text-xs text-foreground outline-none focus:border-accent"
             >
-              <option value="all">All Departments ({departments.length})</option>
-              {departments.map((d) => (
+              <option value="all">All Departments ({allDepartments.length})</option>
+              {allDepartments.map((d) => (
                 <option key={d} value={d}>
                   {d}
                 </option>
               ))}
             </select>
-          </label>
-        </div>
-
-        {/* 2-Pane Workspace */}
-        <div className="mt-6 grid grid-cols-1 gap-8 lg:grid-cols-12 min-h-[640px]">
-          {/* Left Canvas / Interactive Visual Graph */}
-          <div className="lg:col-span-7 border border-rule bg-paper p-6 relative flex flex-col justify-between overflow-hidden">
-            <div className="flex items-center justify-between pb-4 border-b border-rule">
-              <div>
-                <span className="eyebrow">Force-Directed Graph Canvas</span>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  Click any node to focus camera and compute Dijkstra path of least resistance
-                </p>
-              </div>
-              <span className="font-mono text-xs bg-background px-2.5 py-1 border border-rule">
-                {filteredPeople.length} Nodes Active
-              </span>
-            </div>
-
-            {/* Simulated Interactive Force Graph */}
-            <div className="relative my-8 h-96 w-full rounded border border-rule/60 bg-background/50 flex items-center justify-center p-4">
-              <svg className="absolute inset-0 h-full w-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
-                {/* SVG connection webs */}
-                <line x1="20%" y1="30%" x2="50%" y2="50%" stroke="oklch(0.8 0.014 78)" strokeWidth="1" strokeDasharray="3 3" />
-                <line x1="80%" y1="25%" x2="50%" y2="50%" stroke="oklch(0.8 0.014 78)" strokeWidth="1" />
-                <line x1="30%" y1="75%" x2="50%" y2="50%" stroke="oklch(0.46 0.13 28)" strokeWidth="2" />
-                <line x1="70%" y1="70%" x2="50%" y2="50%" stroke="oklch(0.8 0.014 78)" strokeWidth="1" />
-                <line x1="15%" y1="55%" x2="30%" y2="75%" stroke="oklch(0.8 0.014 78)" strokeWidth="1" />
-                <line x1="85%" y1="65%" x2="70%" y2="70%" stroke="oklch(0.8 0.014 78)" strokeWidth="1" />
-              </svg>
-
-              <div className="relative w-full h-full">
-                {filteredPeople.map((person, index) => {
-                  const total = filteredPeople.length || 1;
-                  const angle = (index / total) * 2 * Math.PI;
-                  const radius = index === 0 ? 0 : 38 + (index % 3) * 22; // percent
-                  const x = 50 + (radius * Math.cos(angle)) * 0.75;
-                  const y = 50 + (radius * Math.sin(angle)) * 0.75;
-
-                  const isSelected = activeProfile?.id === person.id;
-
-                  return (
-                    <button
-                      key={person.id}
-                      type="button"
-                      onClick={() => setSelectedProfileId(person.id)}
-                      style={{ left: `${x}%`, top: `${y}%` }}
-                      className={`group absolute -translate-x-1/2 -translate-y-1/2 rounded-full transition-all duration-300 focus:outline-none ${isSelected
-                          ? "ring-4 ring-accent bg-accent text-accent-foreground z-20 scale-125"
-                          : "bg-paper border border-foreground/40 hover:scale-110 hover:border-accent z-10"
-                        } px-3 py-1.5 text-xs font-sans shadow-sm`}
-                      title={`${person.full_name} (${person.company || "Ashwood"})`}
-                    >
-                      <span className="flex items-center gap-1.5">
-                        <span
-                          className={`inline-block h-2 w-2 rounded-full ${person.open_to_mentor ? "bg-accent" : "bg-muted-foreground"
-                            }`}
-                        />
-                        <span className="font-medium whitespace-nowrap">{person.full_name.split(" ")[0]}</span>
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Graph Legend & Status */}
-            <div className="flex flex-wrap items-center justify-between gap-4 border-t border-rule pt-4 text-xs text-ink-soft">
-              <div className="flex items-center gap-4">
-                <span className="flex items-center gap-1.5">
-                  <span className="h-2 w-2 rounded-full bg-accent" /> Open to Mentoring
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <span className="h-2 w-2 rounded-full bg-foreground/40" /> Verified Alumnus
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <span className="inline-block h-0.5 w-4 bg-accent" /> Dijkstra Path Active
-                </span>
-              </div>
-              <span className="font-mono text-[11px] text-muted-foreground">
-                Formula: W = 1 / (pts×5 + shared×2 + 0.1)
-              </span>
-            </div>
           </div>
 
-          {/* Right Pane: Inspector & Dijkstra Path */}
-          <div className="lg:col-span-5 space-y-6">
-            {activeProfile ? (
-              <div className="border border-rule bg-card p-6 space-y-6">
-                {/* Profile Header */}
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <Monogram name={activeProfile.full_name} size="md" />
-                    <div>
-                      <h3 className="font-display text-2xl leading-none">
-                        {activeProfile.full_name}
-                        <SampleTag show={activeProfile.is_sample} />
-                      </h3>
-                      <p className="text-xs text-muted-foreground mt-1 font-mono">
-                        Class of {activeProfile.grad_year} · {activeProfile.department}
-                      </p>
-                    </div>
-                  </div>
+          {/* Society Filter (20 Canonical Societies) */}
+          <div className="lg:col-span-2">
+            <select
+              value={selectedSociety}
+              onChange={(e) => {
+                const val = e.target.value;
+                setSelectedSociety(val);
+                setFilter("sector", val === "all" ? null : val);
+              }}
+              className="w-full border border-rule bg-background px-2 py-1.5 font-mono text-xs text-foreground outline-none focus:border-accent"
+            >
+              <option value="all">All Societies (20)</option>
+              {allSocieties.map((s) => (
+                <option key={s.id} value={s.slug}>
+                  {s.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* ─── SPLIT VIEW: DIRECTORY SIDEBAR (LEFT) + 3D GRAPH (RIGHT) ─── */}
+      <div className="flex-1 flex overflow-hidden relative">
+        {/* LEFT PANE: THE DIRECTORY SIDEBAR */}
+        <div
+          style={{ width: `${sidebarWidth}px` }}
+          className="border-r border-rule bg-paper flex flex-col shrink-0 overflow-hidden"
+        >
+          {paneState === "PROFILE_VIEW" && focusedProfile ? (
+            /* ── PROFILE VIEW ("VS Code" Tab Behavior) ── */
+            <div className="flex-1 min-h-0 overflow-y-auto overscroll-y-contain custom-scrollbar p-4 space-y-4">
+              {/* Navigation Bar: Back to Directory & Quick Actions */}
+              <div className="flex items-center justify-between gap-2 border-b border-rule pb-3 shrink-0">
+                <button
+                  type="button"
+                  onClick={handleBackToList}
+                  className="inline-flex items-center gap-1.5 border border-rule bg-card px-2.5 py-1.5 text-foreground hover:border-accent hover:text-accent transition-colors cursor-pointer shadow-xs font-mono text-[10px] uppercase font-bold"
+                  title="Return to Directory Register"
+                >
+                  <ArrowLeft className="h-3.5 w-3.5" />
+                  <span>Back to Register</span>
+                </button>
+
+                <div className="flex items-center gap-1.5">
                   <Link
                     to="/alumni/$id"
-                    params={{ id: activeProfile.id }}
-                    className="link-u text-xs font-mono"
+                    params={{ id: focusedProfile.id }}
+                    className="inline-flex items-center gap-1 border border-rule bg-card px-2 py-1 font-mono text-[9px] uppercase tracking-wider text-foreground hover:border-accent hover:text-accent transition-colors"
+                    title="View Full Profile Record"
                   >
-                    Full Profile →
+                    <span>Dossier</span>
+                    <ExternalLink className="h-2.5 w-2.5" />
                   </Link>
-                </div>
-
-                <p className="text-sm text-ink-soft leading-relaxed border-t border-rule pt-4">
-                  {activeProfile.headline || activeProfile.bio}
-                </p>
-
-                {/* Shortest Social Path (Dijkstra Traversal Algorithm) */}
-                <div className="border border-rule bg-paper p-4 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="eyebrow text-accent">Shortest Social Path</span>
-                    <span className="font-mono text-[10px] text-muted-foreground">Dijkstra Min-Weight</span>
-                  </div>
-                  <ol className="space-y-2 text-xs">
-                    {shortestPath.map((step, idx) => (
-                      <li key={step.name} className="flex items-center justify-between gap-2">
-                        <span className="flex items-center gap-2">
-                          <span className="font-mono text-muted-foreground">0{idx + 1}.</span>
-                          <span className="font-medium text-foreground">{step.name}</span>
-                          <span className="text-ink-soft text-[11px]">({step.role})</span>
-                        </span>
-                        {step.weight > 0 && (
-                          <span className="font-mono text-[10px] text-muted-foreground">
-                            w={step.weight}
-                          </span>
-                        )}
-                      </li>
-                    ))}
-                  </ol>
-                  <p className="text-[11px] text-muted-foreground pt-1 border-t border-rule">
-                    Calculated via shared department tags and verified microtask ledger interactions.
-                  </p>
-                </div>
-
-                {/* Direct Connections / Mutual Ties */}
-                <div>
-                  <h4 className="eyebrow mb-3">Direct Relational Ties ({activeConnections.length})</h4>
-                  {activeConnections.length === 0 ? (
-                    <p className="text-xs text-muted-foreground italic">
-                      No direct peer connections logged in current window.
-                    </p>
-                  ) : (
-                    <ul className="divide-y divide-rule text-sm">
-                      {activeConnections.slice(0, 4).map(({ person, points }) => (
-                        <li key={person.id} className="py-2.5 flex items-center justify-between">
-                          <button
-                            type="button"
-                            onClick={() => setSelectedProfileId(person.id)}
-                            className="text-left group"
-                          >
-                            <span className="font-medium group-hover:text-accent group-hover:underline">
-                              {person.full_name}
-                            </span>
-                            <span className="block text-xs text-ink-soft">
-                              {person.company || person.department}
-                            </span>
-                          </button>
-                          <span className="font-mono text-xs bg-paper border border-rule px-2 py-0.5">
-                            +{points} pts
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-
-                {/* Action CTA */}
-                <div className="border-t border-rule pt-4 flex gap-3">
                   <Link
                     to="/messages"
-                    className="flex-1 text-center bg-primary text-primary-foreground py-2 text-xs uppercase tracking-widest hover:bg-accent transition-colors"
+                    search={{ recipient: focusedProfile.id }}
+                    className="inline-flex items-center gap-1 border border-accent bg-accent px-2 py-1 font-mono text-[9px] uppercase tracking-wider text-accent-foreground font-semibold hover:opacity-90 transition-opacity"
+                    title="Send Direct Inquiry Message"
                   >
-                    Draft Message
+                    <MessageSquare className="h-2.5 w-2.5" />
+                    <span>Inquire</span>
                   </Link>
-                  {activeProfile.open_to_mentor && (
-                    <Link
-                      to="/mentorship"
-                      className="flex-1 text-center border border-foreground py-2 text-xs uppercase tracking-widest hover:bg-foreground hover:text-background transition-colors"
-                    >
-                      Request Intro
-                    </Link>
-                  )}
                 </div>
               </div>
-            ) : (
-              <div className="border border-rule p-8 text-center text-muted-foreground">
-                Select any node from the canvas to view relational insights.
-              </div>
-            )}
-          </div>
-        </div>
-      </Section>
 
-      {/* Modern, Compact Alumni Directory Map shifted below the graph */}
-      <Section className="mt-8 mb-12">
-        <AlumniDirectoryMap
-          people={people}
-          selectedCity={selectedCity}
-          onSelectCity={setSelectedCity}
+              {/* Main Profile Header Card */}
+              <div className="border border-rule bg-card p-4 space-y-3 shadow-xs">
+                <div className="flex items-start gap-3">
+                  <Monogram name={focusedProfile.full_name} size="sm" />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <h3 className="font-display text-base font-semibold leading-tight text-foreground truncate">
+                        {focusedProfile.full_name}
+                      </h3>
+                      <SampleTag show={focusedProfile.is_sample} />
+                      {focusedProfile.open_to_mentor && (
+                        <span className="border border-emerald-500/40 bg-emerald-500/10 px-1 py-0.2 font-mono text-[8px] uppercase tracking-wider text-emerald-600 dark:text-emerald-400 font-semibold">
+                          Mentor
+                        </span>
+                      )}
+                    </div>
+                    <p className="font-mono text-[10px] text-muted-foreground mt-0.5 truncate">
+                      Class of {focusedProfile.grad_year} · {focusedProfile.department}
+                    </p>
+                    {focusedProfile.company && (
+                      <div className="flex items-center gap-1.5 mt-1 font-mono text-[10px] text-accent font-semibold">
+                        <CompanyLogo company={focusedProfile.company} className="h-3 w-3" />
+                        <span className="truncate">{focusedProfile.company}</span>
+                        {focusedProfile.city && <span className="text-muted-foreground font-normal">· {focusedProfile.city}</span>}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Credibility Audit & Endorsements Popover Row */}
+                <div className="pt-2 border-t border-rule/70 flex items-center justify-between">
+                  <span className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground font-semibold">
+                    Credibility Audit:
+                  </span>
+                  <CredibilityAuditPopover
+                    totalEndorsingAlumni={focusedProfile.distinct_alumni_count || 1}
+                    totalPoints={focusedProfile.bounty_points || 0}
+                  />
+                </div>
+              </div>
+
+              {/* Career History Timeline */}
+              <div className="border border-rule bg-card p-3.5 space-y-2.5 shadow-xs">
+                <div className="flex items-center gap-1.5 text-accent font-mono text-[10px] uppercase tracking-wider font-semibold">
+                  <Briefcase className="h-3.5 w-3.5" />
+                  <span>Career History</span>
+                </div>
+                <ol className="relative border-l border-rule ml-1.5 pl-3.5 space-y-2.5 font-mono text-xs">
+                  {careerEntries.map((e, i) => (
+                    <li key={i} className="relative">
+                      <span
+                        className={`absolute -left-[19px] top-1.5 h-2 w-2 rounded-full border ${
+                          e.isCurrent ? "border-accent bg-accent" : "border-rule bg-paper"
+                        }`}
+                      />
+                      <p className="font-sans text-xs font-semibold text-foreground leading-tight">{e.role}</p>
+                      <div className="flex items-center gap-1 text-[10px] text-muted-foreground mt-0.5">
+                        <span className="font-medium text-ink-soft">{e.company}</span>
+                        <span>·</span>
+                        <span>{e.period}</span>
+                        {e.isCurrent && (
+                          <span className="ml-1 text-[8px] uppercase tracking-wider text-accent border border-accent/40 bg-accent/10 px-1 font-semibold">
+                            Current
+                          </span>
+                        )}
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+
+              {/* Campus Societies & True Mutual Societies */}
+              <div className="border border-rule bg-card p-3.5 space-y-2.5 shadow-xs">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-accent font-mono text-[10px] uppercase tracking-wider font-semibold">
+                    <Users className="h-3.5 w-3.5" />
+                    <span>Campus Societies</span>
+                  </div>
+                  {trueMutualSocieties.length > 0 && (
+                    <span className="border border-accent bg-accent/15 px-1.5 py-0.2 font-mono text-[9px] text-accent font-bold">
+                      {trueMutualSocieties.length} Mutual
+                    </span>
+                  )}
+                </div>
+
+                {/* Mutual Societies highlight */}
+                {trueMutualSocieties.length > 0 && (
+                  <div className="space-y-1 bg-accent/5 border border-accent/30 p-2">
+                    <p className="font-mono text-[9px] text-accent uppercase tracking-wider font-bold">
+                      Shared Campus Grounds ({trueMutualSocieties.length}):
+                    </p>
+                    <div className="flex flex-wrap gap-1">
+                      {trueMutualSocieties.map((s, idx) => (
+                        <span
+                          key={idx}
+                          className="border border-accent bg-accent/20 px-1.5 py-0.2 font-mono text-[9px] text-accent font-semibold"
+                        >
+                          {s} (Shared)
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* All Profile Societies */}
+                {focusedProfile.societies && focusedProfile.societies.length > 0 ? (
+                  <div className="flex flex-wrap gap-1 pt-1">
+                    {focusedProfile.societies.map((s, idx) => (
+                      <span
+                        key={idx}
+                        className="border border-rule bg-background px-1.5 py-0.5 font-mono text-[9px] text-ink-soft"
+                      >
+                        {s}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="font-mono text-[10px] text-muted-foreground">General Alumni Register</p>
+                )}
+              </div>
+
+              {/* Campus Common Ground & Shared Ties */}
+              <div className="border border-rule bg-card p-3.5 space-y-2 shadow-xs">
+                <div className="flex items-center gap-1.5 text-accent font-mono text-[10px] uppercase tracking-wider font-semibold">
+                  <Sparkles className="h-3.5 w-3.5 text-amber-500" />
+                  <span>Shared Ties & Common Ground</span>
+                </div>
+                {sharedTies.length > 0 ? (
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {sharedTies.map((tie, i) => (
+                      <span
+                        key={i}
+                        className="border border-rule bg-background px-2 py-0.5 font-mono text-[9px] text-foreground font-medium"
+                      >
+                        {tie}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="font-mono text-[9px] text-muted-foreground leading-relaxed">
+                    Connected via institutional campus registrar and university alumni registry.
+                  </p>
+                )}
+              </div>
+
+              {/* Live Dijkstra Shortest Path Breakdown */}
+              <div className="border border-rule bg-card p-3.5 space-y-2 shadow-xs">
+                <div className="flex items-center justify-between border-b border-rule pb-2">
+                  <div className="flex items-center gap-1.5 text-accent font-mono text-[10px] uppercase tracking-wider font-semibold">
+                    <RouteIcon className="h-3.5 w-3.5" />
+                    <span>Connection Path (Dijkstra)</span>
+                  </div>
+                  {shortestPathSteps.length > 1 && (
+                    <span className="font-mono text-[9px] text-muted-foreground">
+                      {shortestPathSteps.length - 1} {shortestPathSteps.length - 1 === 1 ? "hop" : "hops"} away · W = {totalResistance.toFixed(3)}
+                    </span>
+                  )}
+                </div>
+
+                {isComputingPath ? (
+                  <p className="font-mono text-[10px] text-muted-foreground animate-pulse py-2">
+                    Computing optimal shortest path...
+                  </p>
+                ) : shortestPathSteps.length > 1 ? (
+                  <div className="space-y-1.5 pt-1 font-mono text-[10px]">
+                    {shortestPathSteps.map((step, idx) => {
+                      const isCurrent = step.id === currentUserId;
+                      const isTarget = step.id === focusedProfile.id;
+
+                      return (
+                        <div key={step.id} className="flex items-center gap-2">
+                          <span className="flex h-4 w-4 shrink-0 items-center justify-center border border-rule bg-background text-[8px] font-bold">
+                            {idx + 1}
+                          </span>
+                          <div className="flex-1 truncate">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (!isTarget && !isCurrent) {
+                                  setFocusedNode(step.id);
+                                }
+                              }}
+                              className={`font-semibold cursor-pointer hover:underline text-left truncate ${
+                                isCurrent
+                                  ? "text-blue-500 font-bold"
+                                  : isTarget
+                                  ? "text-accent font-bold"
+                                  : "text-foreground"
+                              }`}
+                            >
+                              {step.name}
+                            </button>
+                            {isCurrent && <span className="text-muted-foreground ml-1">(You)</span>}
+                            {step.company && (
+                              <span className="text-muted-foreground ml-1.5">· {step.company}</span>
+                            )}
+                          </div>
+                          {idx < shortestPathSteps.length - 1 && (
+                            <span className="text-accent text-[9px] font-bold">↓</span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="p-2.5 border border-amber-500/30 bg-amber-500/10 font-mono text-[10px] space-y-1">
+                    <p className="font-bold text-amber-600 dark:text-amber-400">Unconnected Island Profile</p>
+                    <p className="text-muted-foreground leading-relaxed text-[9px]">
+                      No verified trust path connects you to this profile yet. Claim a microtask or connect through mutual campus peers to build a direct bridge.
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Bottom CTA Actions */}
+              <div className="pt-2 flex items-center gap-2">
+                <Link
+                  to="/messages"
+                  search={{ recipient: focusedProfile.id }}
+                  className="flex-1 flex items-center justify-center gap-1.5 border border-accent bg-accent px-3 py-2 font-mono text-[10px] uppercase tracking-widest text-accent-foreground font-semibold hover:opacity-90 transition-opacity"
+                >
+                  <MessageSquare className="h-3 w-3" />
+                  <span>Inquire Directly</span>
+                </Link>
+                <Link
+                  to="/alumni/$id"
+                  params={{ id: focusedProfile.id }}
+                  className="flex-1 flex items-center justify-center gap-1.5 border border-rule bg-card px-3 py-2 font-mono text-[10px] uppercase tracking-widest text-foreground hover:border-accent hover:text-accent transition-colors font-semibold"
+                >
+                  <ExternalLink className="h-3 w-3" />
+                  <span>Full Dossier</span>
+                </Link>
+              </div>
+            </div>
+          ) : (
+            /* ── LIST VIEW ── */
+            <div className="flex-1 overflow-y-auto divide-y divide-rule font-mono text-xs">
+              <div className="p-3 bg-background/50 border-b border-rule flex items-center justify-between text-xs font-mono text-muted-foreground sticky top-0 z-10 backdrop-blur-xs">
+                <span>Directory Register ({filteredPeople.length} Matches)</span>
+                <label className="flex items-center gap-1.5 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={onlyMentors}
+                    onChange={(e) => setOnlyMentors(e.target.checked)}
+                    className="accent-[var(--accent)]"
+                  />
+                  <span>Mentors Only</span>
+                </label>
+              </div>
+
+              {filteredPeople.map((person) => {
+                const isSelected = focusedNodeId === person.id;
+                const isHovered = hoveredNodeId === person.id;
+
+                return (
+                  <div
+                    key={person.id}
+                    onClick={() => handleSelectProfile(person)}
+                    onMouseEnter={() => setHoveredNode(person.id)}
+                    onMouseLeave={() => setHoveredNode(null)}
+                    className={`group p-3.5 transition-colors cursor-pointer space-y-1.5 border-l-4 ${
+                      isSelected
+                        ? "border-l-accent bg-accent/10"
+                        : isHovered
+                        ? "border-l-accent/60 bg-accent/5"
+                        : "border-l-transparent hover:bg-card/70"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-start gap-2.5 min-w-0">
+                        <Monogram name={person.full_name} size="sm" />
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="font-display text-sm font-semibold text-foreground group-hover:text-accent transition-colors truncate">
+                              {person.full_name}
+                            </span>
+                            <SampleTag show={person.is_sample} />
+                            {person.open_to_mentor && (
+                              <span className="border border-emerald-500/40 bg-emerald-500/10 px-1 py-0.2 font-mono text-[8px] uppercase tracking-wider text-emerald-600 dark:text-emerald-400 font-semibold">
+                                Mentor
+                              </span>
+                            )}
+                          </div>
+                          <p className="font-mono text-[10px] text-muted-foreground mt-0.5 truncate">
+                            Class of {person.grad_year} · {person.department}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-1 shrink-0">
+                        <span className="border border-rule bg-background px-1.5 py-0.5 font-mono text-[9px] text-muted-foreground">
+                          {person.bounty_points ?? 0} pts
+                        </span>
+                        <ChevronRight className="h-3.5 w-3.5 text-muted-foreground opacity-40 group-hover:opacity-100 group-hover:text-accent transition-all ml-0.5" />
+                      </div>
+                    </div>
+
+                    {person.company && (
+                      <div className="flex items-center gap-1.5 font-mono text-[10px] text-foreground font-medium pl-9">
+                        <CompanyLogo company={person.company} className="h-3 w-3" />
+                        <span className="truncate">{person.company}</span>
+                        {person.city && <span className="text-muted-foreground font-normal">· {person.city}</span>}
+                      </div>
+                    )}
+
+                    {/* Societies Badges */}
+                    {person.societies && person.societies.length > 0 && (
+                      <div className="flex items-center gap-1 flex-wrap pl-9 pt-0.5">
+                        {person.societies.slice(0, 2).map((s, idx) => (
+                          <span
+                            key={idx}
+                            className="border border-accent/30 bg-accent/5 px-1.5 py-0.2 font-mono text-[8px] text-accent"
+                          >
+                            {s}
+                          </span>
+                        ))}
+                        {person.societies.length > 2 && (
+                          <span className="font-mono text-[8px] text-muted-foreground">
+                            +{person.societies.length - 2}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+
+              {filteredPeople.length === 0 && (
+                <div className="p-8 text-center font-mono text-xs text-muted-foreground space-y-2">
+                  <p>No scholars match your criteria.</p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearchQuery("");
+                      setSelectedCompany("all");
+                      setSelectedDept("all");
+                      setSelectedSociety("all");
+                      setOnlyMentors(false);
+                      resetFilters();
+                    }}
+                    className="link-u text-accent text-xs cursor-pointer"
+                  >
+                    Clear all filters
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* ── DRAGGABLE SPLITTER DIVIDER ── */}
+        <div
+          onMouseDown={() => setIsDragging(true)}
+          className={`w-1.5 hover:w-2 transition-all cursor-col-resize z-30 select-none ${
+            isDragging ? "bg-accent w-2" : "bg-rule hover:bg-accent/60"
+          }`}
+          title="Drag horizontally to resize Directory sidebar and 3D Canvas"
         />
-      </Section>
-    </>
+
+        {/* RIGHT PANE: THE 3D WEBGL GRAPH CANVAS */}
+        <div className="flex-1 h-full relative overflow-hidden bg-[#0A0908]">
+          <SpatialCanvas
+            nodes={graphNodes}
+            links={graphLinks}
+            onNodeSelect={handleGraphNodeSelect}
+            currentUserId={currentUserId ?? ""}
+            className="w-full h-full"
+          />
+        </div>
+      </div>
+    </div>
   );
 }

@@ -1,3 +1,5 @@
+import { CANONICAL_COMPANIES } from "@/data/nsutTaxonomy";
+
 export interface CompanyMeta {
   id: string;
   name: string;
@@ -621,6 +623,25 @@ export function getCompanyMeta(name?: string | null): CompanyMeta | undefined {
     }
   }
 
+  // Lookup in canonical 90 companies taxonomy
+  const canon = CANONICAL_COMPANIES.find(
+    (c) =>
+      c.slug === normalized ||
+      c.name.toLowerCase() === normalized ||
+      normalized.includes(c.slug) ||
+      c.name.toLowerCase().includes(normalized)
+  );
+  if (canon) {
+    return {
+      id: canon.slug,
+      name: canon.name,
+      domain: `${canon.slug}.com`,
+      mark: canon.name.slice(0, 2).toUpperCase(),
+      brandColor: "#2A3644",
+      focus: `${canon.sector} · ${canon.hqCity}`,
+    };
+  }
+
   return {
     id: normalized.replace(/[^a-z0-9]/g, "-"),
     name,
@@ -628,3 +649,5 @@ export function getCompanyMeta(name?: string | null): CompanyMeta | undefined {
     brandColor: "#2A3644",
   };
 }
+
+export { CANONICAL_COMPANIES };

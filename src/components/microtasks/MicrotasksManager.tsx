@@ -26,7 +26,10 @@ import {
   Sparkles,
   Link2,
   Check,
+  Lock,
 } from "lucide-react";
+import { AlumniGradingModal } from "@/components/bounties/AlumniGradingModal";
+import { SubmissionDialog } from "@/components/bounties/SubmissionDialog";
 
 interface MicrotasksManagerProps {
   // If set, limits or highlights tasks for this specific profile ID (e.g. on alumni/$id or student profile)
@@ -57,9 +60,12 @@ export function MicrotasksManager({
 
   const effectiveRole = rolePerspective || currentRole || "student";
   const currentUserId = user?.id || (effectiveRole === "student" ? "student-user" : "alumni-user");
+  const isFaculty = currentRole === "faculty" || effectiveRole === "faculty";
+  const isAlumni = currentRole === "alumni" || effectiveRole === "alumni";
+  const cannotClaim = isFaculty || isAlumni;
 
   // Filter state
-  const [activeTab, setActiveTab] = useState<"available" | "mine" | "completed">("available");
+  const [activeTab, setActiveTab] = useState<"available" | "mine" | "completed" | "review">("available");
   const [searchQuery, setSearchQuery] = useState("");
 
   // Post task modal state (for alumni / faculty to give work)
@@ -69,6 +75,10 @@ export function MicrotasksManager({
   const [newCategory, setNewCategory] = useState("Code & Architecture Review");
   const [newTurnaround, setNewTurnaround] = useState("1-2 hours");
   const [isPosting, setIsPosting] = useState(false);
+
+  // Modals from project: Submission Dialog & Alumni Grading Modal
+  const [selectedTaskForGrading, setSelectedTaskForGrading] = useState<Microtask | null>(null);
+  const [selectedTaskForSubmission, setSelectedTaskForSubmission] = useState<Microtask | null>(null);
 
   // Submit proof modal state (for students to upload Google Drive link or file)
   const [activeSubmitTaskId, setActiveSubmitTaskId] = useState<string | null>(null);
@@ -110,6 +120,10 @@ export function MicrotasksManager({
       );
     } else if (activeTab === "completed") {
       list = list.filter((t) => t.status === "completed");
+    } else if (activeTab === "review") {
+      list = list.filter(
+        (t) => t.status === "claimed" || t.status === "completed" || t.submission_url || t.submission_file_name
+      );
     }
 
     if (searchQuery.trim()) {
@@ -234,13 +248,25 @@ export function MicrotasksManager({
             </span>
           </div>
 
-          {/* Give Work Button (Alumni & Faculty, or available to all) */}
+          {/* Give Work Button (Alumni only, disabled with greyed icon for Students & Faculty) */}
           <button
             type="button"
-            onClick={() => setIsGiveModalOpen(true)}
-            className="inline-flex items-center gap-1.5 bg-primary px-3.5 py-1.5 font-mono text-xs uppercase tracking-wider font-semibold text-primary-foreground hover:bg-accent transition-colors cursor-pointer"
+            disabled={!isAlumni}
+            onClick={() => {
+              if (!isAlumni) {
+                toast.error("Only alumni can post microtasks.");
+                return;
+              }
+              setIsGiveModalOpen(true);
+            }}
+            title={!isAlumni ? "Only alumni can post microtasks" : "Give a Microtask"}
+            className={
+              !isAlumni
+                ? "inline-flex items-center gap-1.5 border border-rule bg-muted/40 px-3.5 py-1.5 font-mono text-xs uppercase tracking-wider font-semibold text-muted-foreground/50 cursor-not-allowed shadow-none"
+                : "inline-flex items-center gap-1.5 bg-primary px-3.5 py-1.5 font-mono text-xs uppercase tracking-wider font-semibold text-primary-foreground hover:bg-accent transition-colors cursor-pointer"
+            }
           >
-            <Plus className="h-3.5 w-3.5" />
+            <Plus className={`h-3.5 w-3.5 ${!isAlumni ? "text-muted-foreground/40" : ""}`} />
             Give a Microtask
           </button>
         </div>
@@ -279,6 +305,19 @@ export function MicrotasksManager({
           >
             Verified Complete (+1 pt)
           </button>
+          {isAlumni && (
+            <button
+              type="button"
+              onClick={() => setActiveTab("review")}
+              className={`px-3 py-1 transition-colors cursor-pointer flex items-center gap-1.5 ${activeTab === "review"
+                ? "bg-accent text-accent-foreground font-semibold"
+                : "text-accent hover:text-foreground font-semibold"
+                }`}
+            >
+              <ShieldCheck className="h-3.5 w-3.5" />
+              Review Desk ({tasks.filter((t) => t.status === "claimed" || t.submission_url).length})
+            </button>
+          )}
         </div>
 
         <div className="relative min-w-[220px]">
@@ -390,10 +429,15 @@ export function MicrotasksManager({
                         </div>
                       )}
 
-                      {task.submission_note && (
-                        <p className="text-[10px] text-ink-soft italic pt-1 border-t border-accent/10">
-                          "{task.submission_note}"
-                        </p>
+                      {task.reviewer_feedback && (
+                        <div className="pt-1.5 border-t border-accent/20">
+                          <span className="text-[10px] text-accent uppercase tracking-wider font-semibold block">
+                            Alumni Review ({task.grade === "1" ? "Approved" : "Revisions Requested"}):
+                          </span>
+                          <p className="text-[10px] text-ink-soft italic">
+                            "{task.reviewer_feedback}"
+                          </p>
+                        </div>
                       )}
                     </div>
                   )}
@@ -429,23 +473,55 @@ export function MicrotasksManager({
                     {task.status === "open" ? (
                       <button
                         type="button"
-                        onClick={() => handleClaim(task.id)}
-                        className="bg-primary px-3 py-1 font-mono text-xs uppercase tracking-wider font-semibold text-primary-foreground hover:bg-accent transition-colors cursor-pointer"
+                        disabled={cannotClaim}
+                        onClick={() => {
+                          if (cannotClaim) {
+                            toast.error(
+                              isAlumni
+                                ? "Alumni accounts cannot claim microtasks. Claims are reserved for students."
+                                : "Faculty accounts cannot claim student microtasks."
+                            );
+                            return;
+                          }
+                          handleClaim(task.id);
+                        }}
+                        title={
+                          isAlumni
+                            ? "Alumni accounts cannot claim microtasks. Claims are reserved for students."
+                            : isFaculty
+                            ? "Faculty accounts cannot claim student microtasks."
+                            : "Claim Task"
+                        }
+                        className={
+                          cannotClaim
+                            ? "inline-flex items-center gap-1.5 border border-rule bg-muted/40 px-3 py-1 font-mono text-xs uppercase tracking-wider font-semibold text-muted-foreground/50 cursor-not-allowed"
+                            : "inline-flex items-center gap-1.5 bg-primary px-3 py-1 font-mono text-xs uppercase tracking-wider font-semibold text-primary-foreground hover:bg-accent transition-colors cursor-pointer"
+                        }
                       >
+                        {cannotClaim && <Lock className="h-3 w-3 text-muted-foreground/40" />}
                         Claim Task
+                      </button>
+                    ) : isAlumni ? (
+                      <button
+                        type="button"
+                        onClick={() => setSelectedTaskForGrading(task)}
+                        className="inline-flex items-center gap-1.5 bg-accent px-3 py-1 font-mono text-xs uppercase tracking-wider font-semibold text-accent-foreground hover:bg-primary hover:text-primary-foreground transition-colors cursor-pointer shadow-xs"
+                      >
+                        <ShieldCheck className="h-3.5 w-3.5" />
+                        {task.status === "completed" ? "Re-Evaluate / Audit" : "Review Deliverable"}
                       </button>
                     ) : task.status === "claimed" ? (
                       <button
                         type="button"
-                        onClick={() => setActiveSubmitTaskId(task.id)}
+                        onClick={() => setSelectedTaskForSubmission(task)}
                         className="border border-accent bg-accent/10 px-3 py-1 font-mono text-xs uppercase tracking-wider font-semibold text-accent hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer flex items-center gap-1.5"
                       >
                         <Upload className="h-3 w-3" />
-                        Submit Work
+                        Submit Deliverable
                       </button>
                     ) : (
                       <span className="font-mono text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
-                        <CheckCircle2 className="h-3.5 w-3.5" /> 1 Point Awarded
+                        <CheckCircle2 className="h-3.5 w-3.5" /> {task.grade === "1" ? "✓ Approved (+1 pt)" : "1 Point Awarded"}
                       </span>
                     )}
                   </div>
@@ -740,6 +816,34 @@ export function MicrotasksManager({
           </div>
         </div>
       )}
+
+      {/* Alumni Grading Modal from Project */}
+      <AlumniGradingModal
+        task={selectedTaskForGrading}
+        studentName={
+          profiles.find((p) => p.id === selectedTaskForGrading?.claimed_by)?.full_name ||
+          "Ashwood Student Scholar"
+        }
+        isOpen={Boolean(selectedTaskForGrading)}
+        onOpenChange={(open) => {
+          if (!open) setSelectedTaskForGrading(null);
+        }}
+        onGraded={() => {
+          queryClient.invalidateQueries({ queryKey: ["tasks"] });
+        }}
+      />
+
+      {/* Student Submission Dialog from Project */}
+      <SubmissionDialog
+        task={selectedTaskForSubmission}
+        isOpen={Boolean(selectedTaskForSubmission)}
+        onOpenChange={(open) => {
+          if (!open) setSelectedTaskForSubmission(null);
+        }}
+        onSubmissionSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ["tasks"] });
+        }}
+      />
     </div>
   );
 }

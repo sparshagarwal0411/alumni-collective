@@ -334,6 +334,43 @@ export async function completeExistingMicrotask(
   return { success: true };
 }
 
+export async function gradeExistingMicrotask(
+  taskId: string,
+  grade: "0" | "1",
+  feedback?: string
+): Promise<{ success: boolean }> {
+  // 1. Update local microtasks
+  const current = getLocalMicrotasks();
+  const updated = current.map((t) =>
+    t.id === taskId
+      ? {
+          ...t,
+          grade,
+          reviewer_feedback: feedback || null,
+          reviewed_at: new Date().toISOString(),
+          status: grade === "1" ? ("completed" as const) : ("claimed" as const),
+        }
+      : t
+  );
+  saveLocalMicrotasks(updated);
+
+  // 2. Update Supabase if valid UUID
+  if (isValidUuid(taskId)) {
+    try {
+      await supabase
+        .from("microtasks")
+        .update({
+          status: grade === "1" ? "completed" : "claimed",
+        })
+        .eq("id", taskId);
+    } catch (err) {
+      console.warn("Supabase task grade update notice:", err);
+    }
+  }
+
+  return { success: true };
+}
+
 // ==========================================
 // 3. PROFILES (Supabase + Local Sync)
 // ==========================================

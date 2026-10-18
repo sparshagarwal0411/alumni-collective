@@ -14,6 +14,13 @@ export interface Profile {
   linkedin: string | null;
   is_sample: boolean;
   created_at: string;
+  role?: 'student' | 'alumni' | 'admin';
+  branch?: string;
+  bounty_points?: number;
+  distinct_alumni_count?: number;
+  societies?: string[];
+  avatar_url?: string | null;
+  experience_history?: { company: string; title: string; start_year: number; end_year?: number | null; description?: string }[];
 }
 
 export interface Job {
@@ -96,7 +103,55 @@ export interface MentorshipRequest {
   created_at: string;
 }
 
+import { SEED_PROFILES, SEED_PROFILE_TAGS } from "@/data/seedData";
+import { CANONICAL_SOCIETIES } from "@/data/nsutTaxonomy";
+
+export const NSUT_PROFILES: Profile[] = SEED_PROFILES.map((p) => {
+  const rawTags = SEED_PROFILE_TAGS[p.id] || [];
+  const societies = rawTags
+    .map((t) => {
+      const match = CANONICAL_SOCIETIES.find((s) => s.slug === t || t.includes(s.slug));
+      return match ? match.name : null;
+    })
+    .filter(Boolean) as string[];
+
+  const skills = rawTags
+    .filter((t) => {
+      const isSoc = CANONICAL_SOCIETIES.some((s) => s.slug === t || t.includes(s.slug));
+      const isBranch = ['coe', 'it', 'ece', 'ice', 'mac', 'mpae', 'bt'].includes(t.toLowerCase());
+      const isComp = p.current_company && t.toLowerCase() === p.current_company.toLowerCase();
+      return !isSoc && !isBranch && !isComp;
+    })
+    .map((t) => t.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()));
+
+  return {
+    id: p.id,
+    full_name: p.full_name,
+    headline: p.headline || null,
+    role_title: p.headline ? p.headline.split('@')[0].split('|')[0].trim() : (p.role === 'student' ? 'Undergrad Builder' : 'Senior Alumnus'),
+    company: p.current_company || (p.role === 'student' ? 'NSUT Student Cohort' : 'Independent Alumnus'),
+    department: p.branch,
+    degree: p.role === 'student' ? `B.Tech ${p.branch}, Class of ${p.grad_year}` : `B.E./B.Tech ${p.branch}, Class of ${p.grad_year}`,
+    grad_year: p.grad_year,
+    city: p.current_city || 'New Delhi, India',
+    bio: p.headline || `${p.full_name} is an NSUT ${p.role === 'student' ? 'undergraduate scholar' : 'alumnus'} from the department of ${p.branch}.`,
+    skills: skills.length > 0 ? skills : ['Distributed Systems', 'C++', 'Python'],
+    open_to_mentor: p.role === 'alumni',
+    linkedin: p.linkedin_url || null,
+    is_sample: false,
+    created_at: p.created_at,
+    role: p.role,
+    branch: p.branch,
+    bounty_points: p.bounty_points,
+    distinct_alumni_count: p.distinct_alumni_count,
+    societies: societies.length > 0 ? societies : ['DevComm NSUT'],
+    avatar_url: p.avatar_url,
+    experience_history: p.experience_history,
+  };
+});
+
 export const MOCK_PROFILES: Profile[] = [
+  ...NSUT_PROFILES,
   {
     id: "p-arjun-nair",
     full_name: "Dr. Arjun Nair",
@@ -425,13 +480,16 @@ export const MOCK_MICROTASKS: Microtask[] = [
   {
     id: "t-2",
     title: "Fintech Pitch Deck Teardown for Student Founders",
-    description: "Offer a rigorous 45-minute critique of an Ashwood student team's cross-border remittance seed deck before their first angel meetings.",
+    description: "Offer a rigorous 45-minute critique of an NSUT student team's cross-border remittance seed deck before their first angel meetings.",
     hours: 1,
     status: "claimed",
     posted_by: "p-priya-ramanathan",
     claimed_by: "p-dev-mehta",
     is_sample: true,
     created_at: "2024-03-04T12:00:00Z",
+    submission_url: "https://drive.google.com/file/d/1B7xX9_seed_pitch_deck/view",
+    submission_note: "Drafted teardown analyzing unit economics, CAC/LTV assumptions, and regulatory compliance across Indian corridors.",
+    submitted_at: "2024-03-05T16:00:00Z",
   },
   {
     id: "t-3",
@@ -487,6 +545,9 @@ export const MOCK_MICROTASKS: Microtask[] = [
     claimed_by: "p-arjun-nair",
     is_sample: true,
     created_at: "2024-02-12T09:30:00Z",
+    submission_url: "https://github.com/nsut-archive/can-bus-parser/pull/14",
+    submission_note: "Zero-copy unpacker utilizing modern C++20 std::span and SIMD bit manipulation. 100% unit test coverage with Google Benchmark.",
+    submitted_at: "2024-02-14T10:30:00Z",
   },
   {
     id: "t-8",
@@ -841,7 +902,21 @@ export const MOCK_MILESTONES: Milestone[] = [
   },
 ];
 
+const CANONICAL_MOCK_SOCIETIES: Society[] = CANONICAL_SOCIETIES.map((s) => ({
+  id: s.slug,
+  name: s.name,
+  kind: "society",
+  founded: s.established || 2012,
+  members: 120,
+  summary: s.description,
+  alumniIds: SEED_PROFILES.filter((p) => {
+    const tags = SEED_PROFILE_TAGS[p.id] || [];
+    return tags.some((t) => t.includes(s.slug) || s.slug.includes(t));
+  }).map((p) => p.id),
+}));
+
 export const MOCK_SOCIETIES: Society[] = [
+  ...CANONICAL_MOCK_SOCIETIES,
   {
     id: "soc-robotics",
     name: "Ashwood Robotics Society",

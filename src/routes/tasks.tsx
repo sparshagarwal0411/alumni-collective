@@ -10,7 +10,9 @@ import {
   completeExistingMicrotask,
 } from "@/lib/supabaseSync";
 import { toast } from "sonner";
-import { Plus, CheckCircle2, Clock, Award, ShieldCheck, Filter, ExternalLink, ArrowRight, Upload, Link2, File, Check } from "lucide-react";
+import { Plus, CheckCircle2, Clock, Award, ShieldCheck, Filter, ExternalLink, ArrowRight, Upload, Link2, File, Check, Lock } from "lucide-react";
+import { AlumniGradingModal } from "@/components/bounties/AlumniGradingModal";
+import { SubmissionDialog } from "@/components/bounties/SubmissionDialog";
 
 export const Route = createFileRoute("/tasks")({
   head: () => ({
@@ -31,11 +33,18 @@ function TasksPage() {
   const tasksResult = useQuery(tasksQuery);
   const profilesResult = useQuery(profilesQuery);
 
+  const isFaculty = currentRole === "faculty";
+  const isAlumni = currentRole === "alumni";
+  const cannotClaim = isFaculty || isAlumni;
+
+  const [selectedTaskForGrading, setSelectedTaskForGrading] = useState<any | null>(null);
+  const [selectedTaskForSubmission, setSelectedTaskForSubmission] = useState<any | null>(null);
+
   const tasks = tasksResult.data ?? [];
   const profiles = profilesResult.data ?? [];
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterTab, setFilterTab] = useState<"all" | "given" | "taken" | "completed">("all");
+  const [filterTab, setFilterTab] = useState<"all" | "given" | "taken" | "completed" | "review">("all");
   const [selectedStatus, setSelectedStatus] = useState("all");
 
   // Post new microtask modal state
@@ -70,6 +79,8 @@ function TasksPage() {
         matchTab = Boolean(t.claimed_by && (t.claimed_by === currentUserId || t.claimed_by === "current-user"));
       } else if (filterTab === "completed") {
         matchTab = t.status === "completed";
+      } else if (filterTab === "review") {
+        matchTab = Boolean(t.status === "claimed" || t.status === "completed" || t.submission_url || t.submission_file_name);
       }
 
       return matchQuery && matchStatus && matchTab;
@@ -195,15 +206,41 @@ function TasksPage() {
               >
                 Completed & Verified
               </button>
+              {isAlumni && (
+                <button
+                  type="button"
+                  onClick={() => setFilterTab("review")}
+                  className={`px-3 py-1 cursor-pointer transition-colors flex items-center gap-1.5 ${
+                    filterTab === "review"
+                      ? "bg-accent text-accent-foreground font-semibold"
+                      : "text-accent hover:text-foreground font-semibold"
+                  }`}
+                >
+                  <ShieldCheck className="h-3.5 w-3.5" />
+                  Alumni Review Desk ({tasks.filter((t) => t.status === "claimed" || t.submission_url).length})
+                </button>
+              )}
             </div>
           </div>
 
           <button
             type="button"
-            onClick={() => setIsPostModalOpen(true)}
-            className="bg-accent text-accent-foreground px-4 py-2 font-mono text-xs uppercase tracking-wider font-semibold hover:bg-primary hover:text-primary-foreground transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+            disabled={!isAlumni}
+            onClick={() => {
+              if (!isAlumni) {
+                toast.error("Only alumni can post microtasks.");
+                return;
+              }
+              setIsPostModalOpen(true);
+            }}
+            title={!isAlumni ? "Only alumni can post microtasks" : "Post Microtask (Give Task)"}
+            className={
+              !isAlumni
+                ? "border border-rule bg-muted/40 text-muted-foreground/50 px-4 py-2 font-mono text-xs uppercase tracking-wider font-semibold cursor-not-allowed flex items-center justify-center gap-1.5 shadow-none"
+                : "bg-accent text-accent-foreground px-4 py-2 font-mono text-xs uppercase tracking-wider font-semibold hover:bg-primary hover:text-primary-foreground transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+            }
           >
-            <Plus className="h-4 w-4" /> Post Microtask (Give Task)
+            <Plus className={`h-4 w-4 ${!isAlumni ? "text-muted-foreground/40" : ""}`} /> Post Microtask (Give Task)
           </button>
         </div>
 
@@ -329,6 +366,16 @@ function TasksPage() {
                               "{task.submission_note}"
                             </p>
                           )}
+                          {task.reviewer_feedback && (
+                            <div className="pt-1.5 border-t border-accent/20">
+                              <span className="text-[10px] text-accent uppercase tracking-wider font-semibold block">
+                                Alumni Review ({task.grade === "1" ? "Approved" : "Revisions Requested"}):
+                              </span>
+                              <p className="text-[10px] text-ink-soft italic">
+                                "{task.reviewer_feedback}"
+                              </p>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
@@ -356,22 +403,54 @@ function TasksPage() {
                         {task.status === "open" ? (
                           <button
                             type="button"
-                            onClick={() => handleClaim(task.id)}
-                            className="bg-primary px-4 py-2 text-xs uppercase tracking-widest text-primary-foreground hover:bg-accent transition-colors font-semibold cursor-pointer"
+                            disabled={cannotClaim}
+                            onClick={() => {
+                              if (cannotClaim) {
+                                toast.error(
+                                  isAlumni
+                                    ? "Alumni accounts cannot claim microtasks. Claims are reserved for students."
+                                    : "Faculty accounts cannot claim student microtasks."
+                                );
+                                return;
+                              }
+                              handleClaim(task.id);
+                            }}
+                            title={
+                              isAlumni
+                                ? "Alumni accounts cannot claim microtasks. Claims are reserved for students."
+                                : isFaculty
+                                ? "Faculty accounts cannot claim student microtasks."
+                                : "Claim Task"
+                            }
+                            className={
+                              cannotClaim
+                                ? "inline-flex items-center gap-1.5 border border-rule bg-muted/40 px-4 py-2 text-xs uppercase tracking-widest text-muted-foreground/50 font-semibold cursor-not-allowed"
+                                : "inline-flex items-center gap-1.5 bg-primary px-4 py-2 text-xs uppercase tracking-widest text-primary-foreground hover:bg-accent transition-colors font-semibold cursor-pointer"
+                            }
                           >
+                            {cannotClaim && <Lock className="h-3.5 w-3.5 text-muted-foreground/40" />}
                             Claim Task
+                          </button>
+                        ) : isAlumni ? (
+                          <button
+                            type="button"
+                            onClick={() => setSelectedTaskForGrading(task)}
+                            className="inline-flex items-center gap-1.5 bg-accent px-4 py-2 text-xs uppercase tracking-widest text-accent-foreground hover:bg-primary hover:text-primary-foreground transition-colors font-semibold cursor-pointer shadow-xs"
+                          >
+                            <ShieldCheck className="h-4 w-4" />
+                            {task.status === "completed" ? "Re-Evaluate / Audit" : "Review Deliverable"}
                           </button>
                         ) : task.status === "claimed" ? (
                           <button
                             type="button"
-                            onClick={() => setActiveSubmitModal(task.id)}
+                            onClick={() => setSelectedTaskForSubmission(task)}
                             className="border border-foreground bg-background px-3 py-1.5 text-xs uppercase tracking-widest text-foreground hover:bg-foreground hover:text-background transition-colors font-semibold cursor-pointer"
                           >
                             Submit Deliverable
                           </button>
                         ) : (
                           <span className="font-mono text-xs text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
-                            <CheckCircle2 className="h-4 w-4" /> Verified & Credited
+                            <CheckCircle2 className="h-4 w-4" /> {task.grade === "1" ? "✓ Approved (+1 pt)" : "Verified & Credited"}
                           </span>
                         )}
                       </div>
@@ -604,6 +683,34 @@ function TasksPage() {
             </div>
           </div>
         )}
+
+        {/* Alumni Grading Modal from Project */}
+        <AlumniGradingModal
+          task={selectedTaskForGrading}
+          studentName={
+            profiles.find((p) => p.id === selectedTaskForGrading?.claimed_by)?.full_name ||
+            "Ashwood Student Scholar"
+          }
+          isOpen={Boolean(selectedTaskForGrading)}
+          onOpenChange={(open) => {
+            if (!open) setSelectedTaskForGrading(null);
+          }}
+          onGraded={() => {
+            queryClient.invalidateQueries({ queryKey: ["tasks"] });
+          }}
+        />
+
+        {/* Student Submission Dialog from Project */}
+        <SubmissionDialog
+          task={selectedTaskForSubmission}
+          isOpen={Boolean(selectedTaskForSubmission)}
+          onOpenChange={(open) => {
+            if (!open) setSelectedTaskForSubmission(null);
+          }}
+          onSubmissionSuccess={() => {
+            queryClient.invalidateQueries({ queryKey: ["tasks"] });
+          }}
+        />
       </Section>
     </>
   );
