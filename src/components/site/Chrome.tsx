@@ -32,7 +32,7 @@ const NAV = [
 ] as const;
 
 export function Header() {
-  const { user, signOut } = useAuth();
+  const { user, signOut, currentRole } = useAuth();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
 
@@ -53,15 +53,22 @@ export function Header() {
         <div className="hidden items-center gap-5 text-sm lg:flex">
           {user ? (
             <>
+              <div className="flex items-center gap-1.5">
+                <span className="font-mono text-[10px] uppercase bg-paper border border-rule px-1.5 py-0.5 text-accent font-semibold">
+                  {currentRole}
+                </span>
+                <Link to="/account" className="text-ink-soft hover:text-foreground">
+                  Account
+                </Link>
+              </div>
               <Link to="/messages" search={{}} className="text-ink-soft hover:text-foreground">Messages</Link>
               <Link to="/mentorship" className="text-ink-soft hover:text-foreground">Mentorship</Link>
-              <Link to="/account" className="text-ink-soft hover:text-foreground">Account</Link>
               <button
                 onClick={async () => {
                   await signOut();
                   navigate({ to: "/", replace: true });
                 }}
-                className="link-u"
+                className="link-u cursor-pointer"
               >
                 Sign out
               </button>
