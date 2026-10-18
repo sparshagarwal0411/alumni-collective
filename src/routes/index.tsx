@@ -59,7 +59,7 @@ function Home() {
     <>
       <Section className="grid gap-10 pt-14 md:grid-cols-12 md:pt-24">
         <div className="md:col-span-7">
-          <p className="eyebrow">{COLLEGE.name} · Alumni Association</p>
+          <p className="eyebrow text-accent font-semibold tracking-widest">Credence · by Broken Table</p>
           <h1 className="mt-5 text-5xl leading-[0.98] md:text-[5.5rem]">
             The register of a <em className="text-accent">long</em> conversation.
           </h1>

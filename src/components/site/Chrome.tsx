@@ -45,8 +45,8 @@ export function Header() {
     <header className="border-b border-rule">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-6 px-5 py-4 md:px-8">
         <Link to="/" className="min-w-0 leading-none">
-          <span className="block font-display text-xl">{COLLEGE.name}</span>
-          <span className="eyebrow">Alumni · Est. {COLLEGE.est}</span>
+          <span className="block font-display text-xl font-bold tracking-tight text-foreground">Credence</span>
+          <span className="eyebrow text-[9px] text-accent tracking-widest font-semibold">by Broken Table</span>
         </Link>
         <nav aria-label="Primary" className="hidden items-center gap-6 text-sm lg:flex">
           {navItems.map((n) => (
@@ -158,7 +158,7 @@ export function Footer() {
             <li><Link to="/give" className="link-u">Make a gift</Link></li>
           </ul>
         </div>
-        <p className="eyebrow md:col-span-12">© {COLLEGE.name} Alumni Association. Entries marked “Sample” are illustrative.</p>
+        <p className="eyebrow md:col-span-12">© Credence · Built by Broken Table. All proof-of-work records verified cryptographically.</p>
       </div>
     </footer>
   );

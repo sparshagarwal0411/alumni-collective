@@ -375,7 +375,7 @@ export function MergedDirectoryNetworkPage() {
           <div className="flex items-center gap-3">
             <span className="font-mono text-[10px] uppercase tracking-widest text-accent font-semibold flex items-center gap-1.5">
               <span className="h-2 w-2 rounded-full bg-accent animate-pulse" />
-              NSUT Relational Knowledge Graph // Directory Studio
+              Credence by Broken Table // Relational Knowledge Graph Studio
             </span>
             <span className="hidden sm:inline-block text-xs text-muted-foreground">·</span>
             <span className="hidden sm:inline-block font-mono text-[11px] text-muted-foreground">
