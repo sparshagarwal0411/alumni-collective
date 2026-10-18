@@ -13,7 +13,7 @@ export const Route = createFileRoute("/account")({
   component: AccountPage,
 });
 
-function AccountPage() {
+export function AccountPage() {
   const [fullName, setFullName] = useState("Vikramaditya Roy");
   const [headline, setHeadline] = useState("Doctoral Candidate in Parallel Systems · Ashwood CSE '25");
   const [roleTitle, setRoleTitle] = useState("Research Fellow");
@@ -40,12 +40,12 @@ function AccountPage() {
 
   return (
     <>
-      <PageHead
+      {/* <PageHead
         index="X."
         eyebrow="Identity"
         title="Your college register profile."
         lede="Keep your appointments, academic affiliation, and mentorship availability accurate for students and classmates."
-      />
+      /> */}
 
       <Section>
         <div className="grid gap-12 lg:grid-cols-12">

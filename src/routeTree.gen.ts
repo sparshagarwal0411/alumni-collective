@@ -14,6 +14,7 @@ import { Route as AccountRouteImport } from './routes/account'
 import { Route as AnalyticsRouteImport } from './routes/analytics'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as CommunitiesRouteImport } from './routes/communities'
+import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as DirectoryRouteImport } from './routes/directory'
 import { Route as EventsRouteImport } from './routes/events'
 import { Route as GiveRouteImport } from './routes/give'
@@ -22,6 +23,7 @@ import { Route as MentorshipRouteImport } from './routes/mentorship'
 import { Route as MessagesRouteImport } from './routes/messages'
 import { Route as NetworkRouteImport } from './routes/network'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as StudentRouteImport } from './routes/student'
 import { Route as TasksRouteImport } from './routes/tasks'
 import { Route as UpdatesRouteImport } from './routes/updates'
 import { Route as AlumniIdRouteImport } from './routes/alumni.$id'
@@ -49,6 +51,11 @@ const AuthRoute = AuthRouteImport.update({
 const CommunitiesRoute = CommunitiesRouteImport.update({
   id: '/communities',
   path: '/communities',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DirectoryRoute = DirectoryRouteImport.update({
@@ -91,6 +98,11 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
   path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StudentRoute = StudentRouteImport.update({
+  id: '/student',
+  path: '/student',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TasksRoute = TasksRouteImport.update({
   id: '/tasks',
   path: '/tasks',
@@ -113,6 +125,7 @@ export interface FileRoutesByFullPath {
   '/analytics': typeof AnalyticsRoute
   '/auth': typeof AuthRoute
   '/communities': typeof CommunitiesRoute
+  '/dashboard': typeof DashboardRoute
   '/directory': typeof DirectoryRoute
   '/events': typeof EventsRoute
   '/give': typeof GiveRoute
@@ -121,6 +134,7 @@ export interface FileRoutesByFullPath {
   '/messages': typeof MessagesRoute
   '/network': typeof NetworkRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/student': typeof StudentRoute
   '/tasks': typeof TasksRoute
   '/updates': typeof UpdatesRoute
   '/alumni/$id': typeof AlumniIdRoute
@@ -131,6 +145,7 @@ export interface FileRoutesByTo {
   '/analytics': typeof AnalyticsRoute
   '/auth': typeof AuthRoute
   '/communities': typeof CommunitiesRoute
+  '/dashboard': typeof DashboardRoute
   '/directory': typeof DirectoryRoute
   '/events': typeof EventsRoute
   '/give': typeof GiveRoute
@@ -139,6 +154,7 @@ export interface FileRoutesByTo {
   '/messages': typeof MessagesRoute
   '/network': typeof NetworkRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/student': typeof StudentRoute
   '/tasks': typeof TasksRoute
   '/updates': typeof UpdatesRoute
   '/alumni/$id': typeof AlumniIdRoute
@@ -150,6 +166,7 @@ export interface FileRoutesById {
   '/analytics': typeof AnalyticsRoute
   '/auth': typeof AuthRoute
   '/communities': typeof CommunitiesRoute
+  '/dashboard': typeof DashboardRoute
   '/directory': typeof DirectoryRoute
   '/events': typeof EventsRoute
   '/give': typeof GiveRoute
@@ -158,6 +175,7 @@ export interface FileRoutesById {
   '/messages': typeof MessagesRoute
   '/network': typeof NetworkRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/student': typeof StudentRoute
   '/tasks': typeof TasksRoute
   '/updates': typeof UpdatesRoute
   '/alumni/$id': typeof AlumniIdRoute
@@ -170,6 +188,7 @@ export interface FileRouteTypes {
     | '/analytics'
     | '/auth'
     | '/communities'
+    | '/dashboard'
     | '/directory'
     | '/events'
     | '/give'
@@ -178,6 +197,7 @@ export interface FileRouteTypes {
     | '/messages'
     | '/network'
     | '/reset-password'
+    | '/student'
     | '/tasks'
     | '/updates'
     | '/alumni/$id'
@@ -188,6 +208,7 @@ export interface FileRouteTypes {
     | '/analytics'
     | '/auth'
     | '/communities'
+    | '/dashboard'
     | '/directory'
     | '/events'
     | '/give'
@@ -196,6 +217,7 @@ export interface FileRouteTypes {
     | '/messages'
     | '/network'
     | '/reset-password'
+    | '/student'
     | '/tasks'
     | '/updates'
     | '/alumni/$id'
@@ -206,6 +228,7 @@ export interface FileRouteTypes {
     | '/analytics'
     | '/auth'
     | '/communities'
+    | '/dashboard'
     | '/directory'
     | '/events'
     | '/give'
@@ -214,6 +237,7 @@ export interface FileRouteTypes {
     | '/messages'
     | '/network'
     | '/reset-password'
+    | '/student'
     | '/tasks'
     | '/updates'
     | '/alumni/$id'
@@ -225,6 +249,7 @@ export interface RootRouteChildren {
   AnalyticsRoute: typeof AnalyticsRoute
   AuthRoute: typeof AuthRoute
   CommunitiesRoute: typeof CommunitiesRoute
+  DashboardRoute: typeof DashboardRoute
   DirectoryRoute: typeof DirectoryRoute
   EventsRoute: typeof EventsRoute
   GiveRoute: typeof GiveRoute
@@ -233,6 +258,7 @@ export interface RootRouteChildren {
   MessagesRoute: typeof MessagesRoute
   NetworkRoute: typeof NetworkRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  StudentRoute: typeof StudentRoute
   TasksRoute: typeof TasksRoute
   UpdatesRoute: typeof UpdatesRoute
   AlumniIdRoute: typeof AlumniIdRoute
@@ -273,6 +299,13 @@ declare module '@tanstack/react-router' {
       path: '/communities'
       fullPath: '/communities'
       preLoaderRoute: typeof CommunitiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/directory': {
@@ -331,6 +364,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/student': {
+      id: '/student'
+      path: '/student'
+      fullPath: '/student'
+      preLoaderRoute: typeof StudentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/tasks': {
       id: '/tasks'
       path: '/tasks'
@@ -361,6 +401,7 @@ const rootRouteChildren: RootRouteChildren = {
   AnalyticsRoute: AnalyticsRoute,
   AuthRoute: AuthRoute,
   CommunitiesRoute: CommunitiesRoute,
+  DashboardRoute: DashboardRoute,
   DirectoryRoute: DirectoryRoute,
   EventsRoute: EventsRoute,
   GiveRoute: GiveRoute,
@@ -369,6 +410,7 @@ const rootRouteChildren: RootRouteChildren = {
   MessagesRoute: MessagesRoute,
   NetworkRoute: NetworkRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  StudentRoute: StudentRoute,
   TasksRoute: TasksRoute,
   UpdatesRoute: UpdatesRoute,
   AlumniIdRoute: AlumniIdRoute,

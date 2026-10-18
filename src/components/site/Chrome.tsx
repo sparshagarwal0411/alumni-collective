@@ -23,16 +23,18 @@ function ThemeToggle({ className = "" }: { className?: string }) {
 }
 
 const NAV = [
+  // { to: "/dashboard", label: "Dashboard" },
   { to: "/directory", label: "Directory" },
-  { to: "/communities", label: "Communities" },
+  // { to: "/jobs", label: "Jobs" },
+  // { to: "/student", label: "Student Folio" },
+  // { to: "/communities", label: "Communities" }, 
   { to: "/events", label: "Events" },
-  { to: "/jobs", label: "Jobs" },
   { to: "/network", label: "Network" },
   { to: "/updates", label: "Updates" },
 ] as const;
 
 export function Header() {
-  const { user, signOut } = useAuth();
+  const { user, signOut, currentRole } = useAuth();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
 
@@ -49,19 +51,44 @@ export function Header() {
               {n.label}
             </Link>
           ))}
+          {user && (
+            <>
+              <Link
+                to="/tasks"
+                className="text-ink-soft hover:text-foreground"
+                activeProps={{ className: "text-foreground underline underline-offset-8 decoration-accent" }}
+              >
+                Bounty
+              </Link>
+              <Link
+                to="/messages"
+                className="text-ink-soft hover:text-foreground"
+                activeProps={{ className: "text-foreground underline underline-offset-8 decoration-accent" }}
+              >
+                Messages
+              </Link>
+            </>
+          )}
         </nav>
         <div className="hidden items-center gap-5 text-sm lg:flex">
           {user ? (
             <>
-              <Link to="/messages" search={{}} className="text-ink-soft hover:text-foreground">Messages</Link>
-              <Link to="/mentorship" className="text-ink-soft hover:text-foreground">Mentorship</Link>
-              <Link to="/account" className="text-ink-soft hover:text-foreground">Account</Link>
+              <Link
+                to="/dashboard"
+                className="flex items-center gap-1.5 border border-accent/40 bg-accent/10 px-2 py-0.5 text-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+                title="Universal Collective Dashboard"
+              >
+                <span className="font-mono text-[10px] uppercase text-accent font-semibold">
+                  {currentRole}
+                </span>
+                <span className="font-medium text-xs">Dashboard</span>
+              </Link>
               <button
                 onClick={async () => {
                   await signOut();
                   navigate({ to: "/", replace: true });
                 }}
-                className="link-u"
+                className="link-u cursor-pointer"
               >
                 Sign out
               </button>
@@ -84,9 +111,9 @@ export function Header() {
             ))}
             {user ? (
               <>
-                <li><Link to="/messages" search={{}}>Messages</Link></li>
-                <li><Link to="/mentorship">Mentorship</Link></li>
-                <li><Link to="/account">Account</Link></li>
+                <li><Link to="/tasks">Bounty</Link></li>
+                <li><Link to="/messages">Messages</Link></li>
+                <li><Link to="/dashboard" className="text-accent">Dashboard ({currentRole})</Link></li>
                 <li><button onClick={() => signOut().then(() => navigate({ to: "/", replace: true }))}>Sign out</button></li>
               </>
             ) : (

@@ -7,6 +7,7 @@ import { profileQuery, tasksQuery } from "@/lib/queries";
 import { getAlumniPortrait } from "@/lib/portraits";
 import { toast } from "sonner";
 import { Calendar, CheckCircle2, Clock, MessageSquare, Send, UserCheck, X } from "lucide-react";
+import { MicrotasksManager } from "@/components/microtasks/MicrotasksManager";
 
 export const Route = createFileRoute("/alumni/$id")({
   head: () => ({
@@ -40,7 +41,7 @@ function ProfilePage() {
 
   const p = profile.data;
   const userTasks = (tasks.data ?? []).filter((t) => t.posted_by === id || t.claimed_by === id);
-  const portrait = p ? getAlumniPortrait(p.id) : null;
+  const portrait = p ? getAlumniPortrait(p.id, p.full_name) : null;
 
   if (profile.isLoading) {
     return <Loading label="Consulting the college register" />;
@@ -94,20 +95,24 @@ function ProfilePage() {
       </Section>
 
       <PageHead
-        eyebrow={`${p.department ?? "Alumni"} · Class of ${p.grad_year ?? "Unknown"}`}
-        title={
-          <span className="flex flex-wrap items-center gap-4">
-            {portrait && (
+        index={
+          portrait ? (
+            <div className="overflow-hidden rounded-sm border border-rule bg-paper shadow-sm">
               <img
                 src={portrait}
                 alt={p.full_name}
-                className="h-16 w-16 md:h-20 md:w-20 rounded-sm border border-rule object-cover object-top shadow-xs"
+                className="aspect-square w-24 object-cover object-top md:h-32 md:w-32"
               />
-            )}
-            <span className="flex flex-wrap items-baseline gap-3">
-              {p.full_name}
-              <SampleTag show={p.is_sample} />
-            </span>
+            </div>
+          ) : (
+            <Monogram name={p.full_name} size="lg" />
+          )
+        }
+        eyebrow={`${p.department ?? "Alumni"} · Class of ${p.grad_year ?? "Unknown"}`}
+        title={
+          <span className="flex flex-wrap items-baseline gap-3">
+            <span>{p.full_name}</span>
+            <SampleTag show={p.is_sample} />
           </span>
         }
         lede={
@@ -181,35 +186,13 @@ function ProfilePage() {
             )}
 
             {/* Related Microtasks / Ledger */}
-            <div className="border-t border-rule pt-6">
-              <div className="flex items-baseline justify-between mb-4">
-                <h2 className="eyebrow">Microtask Ledger</h2>
-                <Link to="/tasks" className="link-u text-xs">
-                  All microtasks →
-                </Link>
-              </div>
-
-              {userTasks.length === 0 ? (
-                <p className="text-sm italic text-muted-foreground">
-                  No public microtasks currently associated with this profile.
-                </p>
-              ) : (
-                <ul className="divide-y divide-rule border-y border-rule">
-                  {userTasks.map((t) => (
-                    <li key={t.id} className="py-4 flex items-center justify-between gap-4">
-                      <div>
-                        <p className="font-medium text-foreground">{t.title}</p>
-                        <p className="text-xs text-ink-soft mt-1">
-                          {t.hours} hour{t.hours === 1 ? "" : "s"} · Status: {t.status}
-                        </p>
-                      </div>
-                      <Link to="/tasks" className="link-u text-xs">
-                        View
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              )}
+            <div className="border-t border-rule pt-8">
+              <MicrotasksManager
+                profileId={p.id}
+                rolePerspective="alumni"
+                title={`${p.full_name}'s Microtask Ledger`}
+                description={`Commissioned work and research reviews offered by ${p.full_name}. Verified completion awards 1 binary point.`}
+              />
             </div>
           </div>
 
@@ -331,14 +314,14 @@ function ProfilePage() {
                   </div>
                 </div>
               </div>
-              <button
+              {/* <button
                 type="button"
                 onClick={() => setIsMentorshipModalOpen(false)}
                 className="text-muted-foreground hover:text-foreground text-sm font-mono p-1"
                 aria-label="Close dialog"
               >
                 <X className="h-5 w-5" />
-              </button>
+              </button> */}
             </div>
 
             {sessionSubmitted ? (

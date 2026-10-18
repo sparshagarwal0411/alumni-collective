@@ -1,8 +1,11 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
 import { Empty, ErrorNote, Loading, PageHead, SampleTag, Section } from "@/components/site/ui";
-import { fundsQuery, fmtMoney } from "@/lib/queries";
+import { fundsQuery, fmtMoney, fmtDate } from "@/lib/queries";
+import { useAuth } from "@/lib/auth";
+import { processDonationGift, getDonationsLedger, type DonationRecord } from "@/lib/supabaseSync";
+import { Lock, ShieldCheck, HeartHandshake, CheckCircle2, Receipt, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/give")({
@@ -16,35 +19,75 @@ export const Route = createFileRoute("/give")({
 });
 
 function GivePage() {
+  const queryClient = useQueryClient();
+  const { user, currentRole, signInAsDemo } = useAuth();
   const fundsResult = useQuery(fundsQuery);
   const funds = fundsResult.data ?? [];
 
-  const [selectedFundId, setSelectedFundId] = useState<string>("f-1");
+  const [selectedFundId, setSelectedFundId] = useState<string>("609e0766-81e6-4cb5-b763-184389fef911");
   const [selectedAmount, setSelectedAmount] = useState<number>(5000);
   const [customAmount, setCustomAmount] = useState<string>("");
   const [donorName, setDonorName] = useState<string>("");
   const [donorEmail, setDonorEmail] = useState<string>("");
+  const [donorNote, setDonorNote] = useState<string>("");
   const [isAnonymous, setIsAnonymous] = useState<boolean>(false);
   const [isPledging, setIsPledging] = useState<boolean>(false);
+  const [donationsLedger, setDonationsLedger] = useState<DonationRecord[]>(getDonationsLedger());
+
+  useEffect(() => {
+    if (funds.length > 0 && !funds.some((f) => f.id === selectedFundId)) {
+      setSelectedFundId(funds[0].id);
+    }
+  }, [funds, selectedFundId]);
+
+  useEffect(() => {
+    if (user) {
+      if (!donorName && user.user_metadata?.full_name) {
+        setDonorName(user.user_metadata.full_name);
+      }
+      if (!donorEmail && user.email) {
+        setDonorEmail(user.email);
+      }
+    }
+  }, [user]);
 
   const activeFund = funds.find((f) => f.id === selectedFundId) || funds[0];
-
-  const handlePledge = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsPledging(true);
-    setTimeout(() => {
-      setIsPledging(false);
-      toast.success("Thank you for your generous pledge to the Ashwood College Endowment.");
-      setDonorName("");
-      setDonorEmail("");
-      setCustomAmount("");
-    }, 600);
-  };
-
   const finalAmount = customAmount ? Number(customAmount) : selectedAmount;
 
+  const handlePledge = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) {
+      toast.error("Please sign in to complete your gift.");
+      return;
+    }
+    if (!activeFund) return;
+
+    setIsPledging(true);
+    try {
+      const result = await processDonationGift({
+        fundId: activeFund.id,
+        fundName: activeFund.name,
+        amount: finalAmount,
+        donorName: isAnonymous ? "Anonymous Alum" : donorName || user.user_metadata?.full_name || user.email || "Ashwood Alum",
+        donorEmail: donorEmail || user.email,
+        isAnonymous,
+        note: donorNote.trim() || undefined,
+      });
+
+      setDonationsLedger(getDonationsLedger());
+      toast.success(`Gift of ${fmtMoney(finalAmount)} credited! Receipt: ${result.record.receiptNumber}`);
+      setCustomAmount("");
+      setDonorNote("");
+      await queryClient.invalidateQueries({ queryKey: ["funds"] });
+    } catch (err: any) {
+      toast.error(`Error processing gift: ${err.message}`);
+    } finally {
+      setIsPledging(false);
+    }
+  };
+
   return (
-    <div className="space-y-12 pb-24">
+    <div className="space-y-12 pb-12">
       <PageHead
         index="IX."
         eyebrow="Stewardship"
@@ -58,8 +101,7 @@ function GivePage() {
             <div className="md:col-span-7">
               <p className="eyebrow">Giving · {funds[0].name}<SampleTag show={funds[0].is_sample} /></p>
               <p className="mt-4 font-display text-3xl leading-snug md:text-4xl">
-                “I was the first in my family to see the inside of a lecture hall. Someone I never met paid for it.”
-              </p>
+“I was the <span className="bg-[#a0534d] text-white px-1.5 py-0.5 rounded">first in my family</span> to see the inside of a lecture hall. <span className="bg-[#a0534d] text-white px-1.5 py-0.5 rounded">Someone I never met</span> paid for it.”              </p>
               <p className="mt-4 text-sm text-muted-foreground">— Scholarship recipient, Class of 2019 (illustrative)</p>
             </div>
             <div className="md:col-span-4 md:col-start-9 md:self-center">
@@ -225,24 +267,119 @@ function GivePage() {
                   </div>
 
                   <div className="pt-4 border-t border-rule space-y-3">
-                    <button
-                      type="submit"
-                      disabled={isPledging}
-                      className="w-full bg-accent text-accent-foreground py-3 text-xs uppercase tracking-widest hover:bg-primary transition-colors disabled:opacity-50"
-                    >
-                      {isPledging
-                        ? "Transmitting Pledge..."
-                        : `Complete Gift of ${fmtMoney(finalAmount || 5000)}`}
-                    </button>
-                    <p className="text-[11px] text-muted-foreground text-center">
-                      Official College Receipt generated immediately with cryptographic token.
-                    </p>
+                    {user ? (
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 p-2 border border-emerald-200 dark:border-emerald-800 rounded">
+                          <ShieldCheck className="h-4 w-4 shrink-0" />
+                          <span>Authenticated Donor: <strong>{donorName || user.email}</strong> ({currentRole.toUpperCase()})</span>
+                        </div>
+                        <button
+                          type="submit"
+                          disabled={isPledging}
+                          className="w-full bg-accent text-accent-foreground py-3 text-xs uppercase tracking-widest hover:bg-primary transition-colors disabled:opacity-50 cursor-pointer"
+                        >
+                          {isPledging
+                            ? "Transmitting Pledge..."
+                            : `Complete Gift of ${fmtMoney(finalAmount || 5000)}`}
+                        </button>
+                        <p className="text-[11px] text-muted-foreground text-center">
+                          Official College Receipt generated immediately with cryptographic token.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3 bg-muted/40 p-4 border border-rule rounded">
+                        <div className="flex items-center gap-2 text-xs text-foreground font-semibold">
+                          <Lock className="h-4 w-4 text-accent" />
+                          <span>Member Login Required to Complete Gift</span>
+                        </div>
+                        <p className="text-xs text-ink-soft">
+                          To generate tax-exempt receipts (80G / 501(c)(3)) and record your contribution in the College register, please authenticate with your account.
+                        </p>
+                        <Link
+                          to="/auth"
+                          search={{ redirect: "/give", intent: "donate" }}
+                          className="block w-full text-center bg-primary text-primary-foreground py-2.5 text-xs uppercase tracking-widest hover:bg-accent transition-colors"
+                        >
+                          Sign In to Complete Gift
+                        </Link>
+                        <div className="flex items-center justify-center gap-2 pt-1 text-[11px] text-muted-foreground font-mono">
+                          <span>Quick test:</span>
+                          <button
+                            type="button"
+                            onClick={() => signInAsDemo("alumni")}
+                            className="link-u text-foreground hover:text-accent cursor-pointer"
+                          >
+                            Alum
+                          </button>
+                          <span>·</span>
+                          <button
+                            type="button"
+                            onClick={() => signInAsDemo("faculty")}
+                            className="link-u text-foreground hover:text-accent cursor-pointer"
+                          >
+                            Faculty
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </form>
               </div>
             </div>
           </div>
         )}
+
+        {/* Live Stewardship & Recent Gifts Ledger */}
+        <div className="mt-14 border-t border-rule pt-10 space-y-4">
+          <div className="flex items-center justify-between border-b border-rule pb-2">
+            <div className="flex items-center gap-2">
+              <Receipt className="h-4 w-4 text-accent" />
+              <h3 className="font-display text-xl font-bold">Stewardship Ledger · Recent Gifts</h3>
+            </div>
+            <span className="font-mono text-xs text-muted-foreground">
+              {donationsLedger.length} gifts recorded · Verified Endowment Receipts
+            </span>
+          </div>
+
+          <div className="border border-rule bg-paper overflow-x-auto shadow-xs">
+            <table className="w-full text-left font-sans text-xs">
+              <thead className="border-b border-rule font-mono text-[11px] text-muted-foreground uppercase tracking-wider bg-background/50">
+                <tr>
+                  <th className="p-3.5">Donor Standing</th>
+                  <th className="p-3.5">Endowment Fund</th>
+                  <th className="p-3.5">Gift Amount</th>
+                  <th className="p-3.5">Receipt Token</th>
+                  <th className="p-3.5">Recorded Date</th>
+                  <th className="p-3.5">Dedication / Purpose</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-rule">
+                {donationsLedger.map((d) => (
+                  <tr key={d.id} className="hover:bg-accent/5 transition-colors">
+                    <td className="p-3.5 font-display text-sm font-semibold text-foreground">
+                      {d.donorName}
+                    </td>
+                    <td className="p-3.5 font-mono text-muted-foreground">
+                      {d.fundName}
+                    </td>
+                    <td className="p-3.5 font-mono font-semibold text-foreground text-sm">
+                      {fmtMoney(d.amount)}
+                    </td>
+                    <td className="p-3.5 font-mono text-[11px] text-accent">
+                      {d.receiptNumber}
+                    </td>
+                    <td className="p-3.5 font-mono text-muted-foreground">
+                      {fmtDate(d.createdAt)}
+                    </td>
+                    <td className="p-3.5 text-ink-soft italic text-[11px] max-w-xs truncate">
+                      {d.note || "General Endowment & Bursary Support"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </Section>
     </div>
   );

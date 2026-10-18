@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import { Monogram, PageHead, SampleTag, Section } from "@/components/site/ui";
 import { profilesQuery, connectionsQuery } from "@/lib/queries";
 import type { Profile } from "@/lib/mockData";
+import { AlumniDirectoryMap } from "@/components/network/AlumniDirectoryMap";
 
 export const Route = createFileRoute("/network")({
   head: () => ({
@@ -25,6 +26,7 @@ function NetworkPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCompany, setSelectedCompany] = useState<string>("all");
   const [selectedDept, setSelectedDept] = useState<string>("all");
+  const [selectedCity, setSelectedCity] = useState<string | null>(null);
   const [selectedProfileId, setSelectedProfileId] = useState<string | null>("p-arjun-nair");
 
   // Unique companies and departments
@@ -42,15 +44,17 @@ function NetworkPage() {
     return people.filter((p) => {
       const matchQuery =
         !q ||
-        [p.full_name, p.company, p.headline, p.department, ...(p.skills || [])]
+        [p.full_name, p.company, p.headline, p.department, p.city, ...(p.skills || [])]
           .join(" ")
           .toLowerCase()
           .includes(q);
       const matchCompany = selectedCompany === "all" || p.company === selectedCompany;
       const matchDept = selectedDept === "all" || p.department === selectedDept;
-      return matchQuery && matchCompany && matchDept;
+      const matchCity =
+        !selectedCity || (p.city && p.city.toLowerCase().includes(selectedCity.toLowerCase()));
+      return matchQuery && matchCompany && matchDept && matchCity;
     });
-  }, [people, searchQuery, selectedCompany, selectedDept]);
+  }, [people, searchQuery, selectedCompany, selectedDept, selectedCity]);
 
   const activeProfile = useMemo(() => {
     return people.find((p) => p.id === selectedProfileId) || people[0] || null;
@@ -106,11 +110,22 @@ function NetworkPage() {
         lede="Navigate relational weight, mutual mentorship, and the shortest social path to any alumnus."
       />
 
-      <Section className="mt-4">
+      <Section className="mt-8">
         {/* Workspace controls */}
         <div className="grid gap-4 border-y border-foreground py-4 md:grid-cols-12 md:items-end">
           <label className="md:col-span-5">
-            <span className="eyebrow">Search Nodes</span>
+            <div className="flex items-center justify-between">
+              <span className="eyebrow">Search Nodes</span>
+              {selectedCity && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedCity(null)}
+                  className="font-mono text-[10px] text-accent hover:underline"
+                >
+                  Clear city: {selectedCity} ×
+                </button>
+              )}
+            </div>
             <input
               type="text"
               placeholder="Search by name, research topic, or skill..."
@@ -119,6 +134,7 @@ function NetworkPage() {
               className="field text-base"
             />
           </label>
+
           <label className="md:col-span-3">
             <span className="eyebrow">Employer Filter</span>
             <select
@@ -181,7 +197,6 @@ function NetworkPage() {
 
               <div className="relative w-full h-full">
                 {filteredPeople.map((person, index) => {
-                  // Distribute in pleasant orbital positions
                   const total = filteredPeople.length || 1;
                   const angle = (index / total) * 2 * Math.PI;
                   const radius = index === 0 ? 0 : 38 + (index % 3) * 22; // percent
@@ -196,18 +211,16 @@ function NetworkPage() {
                       type="button"
                       onClick={() => setSelectedProfileId(person.id)}
                       style={{ left: `${x}%`, top: `${y}%` }}
-                      className={`group absolute -translate-x-1/2 -translate-y-1/2 rounded-full transition-all duration-300 focus:outline-none ${
-                        isSelected
+                      className={`group absolute -translate-x-1/2 -translate-y-1/2 rounded-full transition-all duration-300 focus:outline-none ${isSelected
                           ? "ring-4 ring-accent bg-accent text-accent-foreground z-20 scale-125"
                           : "bg-paper border border-foreground/40 hover:scale-110 hover:border-accent z-10"
-                      } px-3 py-1.5 text-xs font-sans shadow-sm`}
+                        } px-3 py-1.5 text-xs font-sans shadow-sm`}
                       title={`${person.full_name} (${person.company || "Ashwood"})`}
                     >
                       <span className="flex items-center gap-1.5">
                         <span
-                          className={`inline-block h-2 w-2 rounded-full ${
-                            person.open_to_mentor ? "bg-accent" : "bg-muted-foreground"
-                          }`}
+                          className={`inline-block h-2 w-2 rounded-full ${person.open_to_mentor ? "bg-accent" : "bg-muted-foreground"
+                            }`}
                         />
                         <span className="font-medium whitespace-nowrap">{person.full_name.split(" ")[0]}</span>
                       </span>
@@ -351,6 +364,15 @@ function NetworkPage() {
             )}
           </div>
         </div>
+      </Section>
+
+      {/* Modern, Compact Alumni Directory Map shifted below the graph */}
+      <Section className="mt-8 mb-12">
+        <AlumniDirectoryMap
+          people={people}
+          selectedCity={selectedCity}
+          onSelectCity={setSelectedCity}
+        />
       </Section>
     </>
   );

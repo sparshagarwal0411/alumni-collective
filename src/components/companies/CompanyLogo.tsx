@@ -318,23 +318,481 @@ export function CompanyLogo({
           </svg>
         );
 
+      case "uber":
+        return (
+          <svg viewBox="0 0 24 24" className="h-full w-full" fill="none" aria-label="Uber logo">
+            <rect width="24" height="24" rx="4.5" fill="#000000" />
+            <text x="3.5" y="15.5" fontFamily="system-ui, -apple-system, sans-serif" fontSize="8.5" fontWeight="700" fill="#FFFFFF" letterSpacing="-0.5px">
+              Uber
+            </text>
+          </svg>
+        );
+
+      case "visa":
+        return (
+          <svg viewBox="0 0 24 24" className="h-full w-full" fill="none" aria-label="Visa logo">
+            <rect width="24" height="24" rx="4.5" fill="#FFFFFF" className="dark:fill-slate-900" />
+            <path d="M4 16.5l2.4-9h2.3l-2.4 9H4z" fill="#1A1F71" />
+            <path d="M12.4 7.7c-.5-.2-1.2-.4-2-.4-2.2 0-3.8 1.2-3.8 2.8 0 1.2 1.1 1.9 1.9 2.3.9.4 1.2.7 1.2 1.1 0 .6-.7.9-1.4.9-.9 0-1.5-.1-2.2-.4l-.3-.2-.3 1.9c.5.2 1.5.4 2.5.4 2.3 0 3.9-1.1 3.9-2.9 0-1-.6-1.7-2-2.4-.8-.4-1.3-.7-1.3-1.1 0-.4.4-.8 1.3-.8.7 0 1.3.1 1.8.4l.2.1.2-1.7z" fill="#1A1F71" />
+            <path d="M14.6 13.5l1.1-3 1-3h2.1l-3.3 9h-2.1l-1.6-7.3h2.3l.5 4.3z" fill="#1A1F71" />
+            <path d="M21.9 7.5h-1.8c-.6 0-1 .2-1.2.8l-3.5 8.2h2.4l.5-1.3h2.9l.3 1.3H24l-2.1-9zm-2.7 5.9l1.2-3.3.7 3.3h-1.9z" fill="#1A1F71" />
+            <polygon points="4,7.5 4,8.8 6.4,8.8" fill="#F7B600" />
+          </svg>
+        );
+
+      case "paypal":
+        return (
+          <svg viewBox="0 0 24 24" className="h-full w-full" fill="none" aria-label="PayPal logo">
+            <rect width="24" height="24" rx="4.5" fill="#FFFFFF" className="dark:fill-slate-900" />
+            <path d="M6.5 5.5h6c2.4 0 4.2 1.5 3.8 3.9-.4 2.6-2.5 4.1-5.1 4.1H8.8l-1.2 7H4.5l2-15z" fill="#003087" />
+            <path d="M8.8 9.5h5.4c2.1 0 3.8 1.3 3.4 3.5-.4 2.4-2.3 3.8-4.6 3.8h-2.2l-.9 5.2H6.8l2-12.5z" fill="#0079C1" fillOpacity="0.88" />
+          </svg>
+        );
+
+      case "jpmorgan":
+        return (
+          <svg viewBox="0 0 24 24" className="h-full w-full" fill="none" aria-label="JPMorgan Chase logo">
+            <rect width="24" height="24" rx="4.5" fill="#117ACA" />
+            <g transform="translate(12,12) scale(0.65)">
+              <path d="M0 -14 L6 -14 L14 -6 L14 0 L6 -8 L0 -8 Z" fill="#FFFFFF" />
+              <path d="M14 0 L14 6 L6 14 L0 14 L8 6 L8 0 Z" fill="#FFFFFF" />
+              <path d="M0 14 L-6 14 L-14 6 L-14 0 L-6 8 L0 8 Z" fill="#FFFFFF" />
+              <path d="M-14 0 L-14 -6 L-6 -14 L0 -14 L-8 -6 L-8 0 Z" fill="#FFFFFF" />
+            </g>
+          </svg>
+        );
+
+      case "ibm":
+        return (
+          <svg viewBox="0 0 24 24" className="h-full w-full" fill="none" aria-label="IBM logo">
+            <rect width="24" height="24" rx="4.5" fill="#054ADA" />
+            <g fill="#FFFFFF">
+              <rect x="4" y="6" width="3" height="1.2" />
+              <rect x="4" y="8" width="3" height="1.2" />
+              <rect x="4" y="10" width="3" height="1.2" />
+              <rect x="4" y="12" width="3" height="1.2" />
+              <rect x="4" y="14" width="3" height="1.2" />
+              <rect x="4" y="16" width="3" height="1.2" />
+              {/* B */}
+              <rect x="8.5" y="6" width="4.5" height="1.2" />
+              <rect x="8.5" y="8" width="5" height="1.2" />
+              <rect x="8.5" y="10" width="4.5" height="1.2" />
+              <rect x="8.5" y="12" width="5.2" height="1.2" />
+              <rect x="8.5" y="14" width="5" height="1.2" />
+              <rect x="8.5" y="16" width="4.5" height="1.2" />
+              {/* M */}
+              <rect x="15" y="6" width="5" height="1.2" />
+              <rect x="15" y="8" width="5" height="1.2" />
+              <rect x="15" y="10" width="5" height="1.2" />
+              <rect x="15" y="12" width="5" height="1.2" />
+              <rect x="15" y="14" width="5" height="1.2" />
+              <rect x="15" y="16" width="5" height="1.2" />
+            </g>
+          </svg>
+        );
+
+      case "salesforce":
+        return (
+          <svg viewBox="0 0 24 24" className="h-full w-full" fill="none" aria-label="Salesforce logo">
+            <rect width="24" height="24" rx="4.5" fill="#00A1E0" />
+            <path
+              d="M10 6.5a4.5 4.5 0 0 1 4.1 2.6 4 4 0 0 1 3.4 3.9c0 .2 0 .4-.1.6A3.8 3.8 0 0 1 20 17H5a3.8 3.8 0 0 1-2.5-6.6 4.2 4.2 0 0 1 3.5-3.6 4.6 4.6 0 0 1 4-1.3z"
+              fill="#FFFFFF"
+            />
+            <text x="9.5" y="14.8" fontFamily="Georgia, serif" fontSize="7" fontStyle="italic" fontWeight="bold" fill="#00A1E0">
+              f
+            </text>
+          </svg>
+        );
+
+      case "walmart":
+        return (
+          <svg viewBox="0 0 24 24" className="h-full w-full" fill="none" aria-label="Walmart logo">
+            <rect width="24" height="24" rx="4.5" fill="#0071CE" />
+            <g transform="translate(12,12)">
+              {[0, 60, 120, 180, 240, 300].map((deg) => (
+                <rect
+                  key={deg}
+                  x="-1.4"
+                  y="-7.5"
+                  width="2.8"
+                  height="4.8"
+                  rx="1.4"
+                  fill="#FFC220"
+                  transform={`rotate(${deg})`}
+                />
+              ))}
+            </g>
+          </svg>
+        );
+
+      case "arm":
+        return (
+          <svg viewBox="0 0 24 24" className="h-full w-full" fill="none" aria-label="ARM logo">
+            <rect width="24" height="24" rx="4.5" fill="#0091BD" />
+            <text x="4" y="15.8" fontFamily="system-ui, -apple-system, sans-serif" fontSize="10.5" fontWeight="700" fill="#FFFFFF" letterSpacing="-0.5px">
+              arm
+            </text>
+          </svg>
+        );
+
+      case "mongodb":
+        return (
+          <svg viewBox="0 0 24 24" className="h-full w-full" fill="none" aria-label="MongoDB logo">
+            <rect width="24" height="24" rx="4.5" fill="#001E2B" />
+            <path
+              d="M12 3.8c-.3.4-3.8 4.2-3.8 8.4 0 3.8 3.1 6.5 3.8 7.3.7-.8 3.8-3.5 3.8-7.3 0-4.2-3.5-8-3.8-8.4z"
+              fill="#00ED64"
+            />
+            <path
+              d="M12 4.2v14.8c.2-.2 1.4-1.4 2-2.8.8-1.9.9-3.8.9-4.8 0-3.3-2.6-6.6-2.9-7.2z"
+              fill="#00684A"
+            />
+          </svg>
+        );
+
+      case "natwest":
+        return (
+          <svg viewBox="0 0 24 24" className="h-full w-full" fill="none" aria-label="NatWest logo">
+            <rect width="24" height="24" rx="4.5" fill="#42145F" />
+            <g transform="translate(12, 12)">
+              <path d="M-6 -6 L0 -2 L6 -6 L0 -10 Z" fill="#ED1B24" />
+              <path d="M-6 0 L0 4 L6 0 L0 -4 Z" fill="#FFFFFF" fillOpacity="0.9" />
+              <path d="M-6 6 L0 10 L6 6 L0 2 Z" fill="#ED1B24" />
+            </g>
+          </svg>
+        );
+
+      case "intuit":
+        return (
+          <svg viewBox="0 0 24 24" className="h-full w-full" fill="none" aria-label="Intuit logo">
+            <rect width="24" height="24" rx="4.5" fill="#0077C5" />
+            <text x="3" y="15.5" fontFamily="system-ui, sans-serif" fontSize="8" fontWeight="700" fill="#FFFFFF" letterSpacing="-0.2px">
+              intuit
+            </text>
+          </svg>
+        );
+
+      case "godaddy":
+        return (
+          <svg viewBox="0 0 24 24" className="h-full w-full" fill="none" aria-label="GoDaddy logo">
+            <rect width="24" height="24" rx="4.5" fill="#00A4A6" />
+            <path
+              d="M12 7.2c-2.4-2.4-6.2-1.3-6.2 2 0 3.4 4 6.2 6.2 7.8 2.2-1.6 6.2-4.4 6.2-7.8 0-3.3-3.8-4.4-6.2-2z"
+              fill="#FFFFFF"
+            />
+            <circle cx="12" cy="11.2" r="2.2" fill="#00A4A6" />
+          </svg>
+        );
+
+      case "hike":
+        return (
+          <svg viewBox="0 0 24 24" className="h-full w-full" fill="none" aria-label="Hike logo">
+            <rect width="24" height="24" rx="4.5" fill="#00A3E8" />
+            <path
+              d="M5 8a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v5a4 4 0 0 1-4 4h-4l-3 3v-3H9a4 4 0 0 1-4-4V8z"
+              fill="#FFFFFF"
+            />
+            <text x="7.5" y="14" fontFamily="sans-serif" fontSize="7" fontWeight="bold" fill="#00A3E8">
+              hi
+            </text>
+          </svg>
+        );
+
+      case "olx":
+        return (
+          <svg viewBox="0 0 24 24" className="h-full w-full" fill="none" aria-label="OLX logo">
+            <rect width="24" height="24" rx="4.5" fill="#002F34" />
+            <circle cx="7" cy="12" r="3.2" stroke="#00A59B" strokeWidth="2" fill="none" />
+            <path d="M12 6.5v9h2.8" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M17 9l4 6m0-6l-4 6" stroke="#FF5636" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+        );
+
+      case "oyo":
+        return (
+          <svg viewBox="0 0 24 24" className="h-full w-full" fill="none" aria-label="OYO logo">
+            <rect width="24" height="24" rx="4.5" fill="#EE2E24" />
+            <circle cx="12" cy="12" r="9" fill="#EE2E24" />
+            <text x="3.8" y="15.2" fontFamily="sans-serif" fontSize="8.2" fontWeight="900" fill="#FFFFFF" letterSpacing="0.2px">
+              OYO
+            </text>
+          </svg>
+        );
+
+      case "rippling":
+        return (
+          <svg viewBox="0 0 24 24" className="h-full w-full" fill="none" aria-label="Rippling logo">
+            <rect width="24" height="24" rx="4.5" fill="#FFB800" />
+            <rect x="5.5" y="6" width="3" height="12" rx="1.5" fill="#1A1A1A" />
+            <rect x="10.5" y="6" width="3" height="7" rx="1.5" fill="#1A1A1A" />
+            <rect x="15.5" y="11" width="3" height="7" rx="1.5" fill="#1A1A1A" />
+          </svg>
+        );
+
+      case "monotype":
+        return (
+          <svg viewBox="0 0 24 24" className="h-full w-full" fill="none" aria-label="Monotype logo">
+            <rect width="24" height="24" rx="4.5" fill="#111111" />
+            <text x="4.5" y="16.5" fontFamily="Georgia, serif" fontSize="12" fontWeight="bold" fill="#FFFFFF">
+              M.
+            </text>
+          </svg>
+        );
+
+      case "morganstanley":
+        return (
+          <svg viewBox="0 0 24 24" className="h-full w-full" fill="none" aria-label="Morgan Stanley logo">
+            <rect width="24" height="24" rx="4.5" fill="#002B49" />
+            <text x="4" y="15.2" fontFamily="Georgia, serif" fontSize="8" fontWeight="bold" fill="#FFFFFF" letterSpacing="0.5px">
+              MS
+            </text>
+          </svg>
+        );
+
+      case "nykaa":
+        return (
+          <svg viewBox="0 0 24 24" className="h-full w-full" fill="none" aria-label="Nykaa logo">
+            <rect width="24" height="24" rx="4.5" fill="#FC2779" />
+            <text x="2.5" y="15" fontFamily="sans-serif" fontSize="6.5" fontStyle="italic" fontWeight="900" fill="#FFFFFF" letterSpacing="0.2px">
+              NYKAA
+            </text>
+          </svg>
+        );
+
+      case "pharmeasy":
+        return (
+          <svg viewBox="0 0 24 24" className="h-full w-full" fill="none" aria-label="PharmEasy logo">
+            <rect width="24" height="24" rx="4.5" fill="#10847E" />
+            <rect x="10.5" y="6" width="3" height="12" rx="1" fill="#FFFFFF" />
+            <rect x="6" y="10.5" width="12" height="3" rx="1" fill="#FFFFFF" />
+            <circle cx="16" cy="16" r="2.2" fill="#F47779" />
+          </svg>
+        );
+
+      case "sprinklr":
+        return (
+          <svg viewBox="0 0 24 24" className="h-full w-full" fill="none" aria-label="Sprinklr logo">
+            <rect width="24" height="24" rx="4.5" fill="#FFFFFF" className="dark:fill-slate-900" />
+            <g transform="translate(12, 12)">
+              <circle cx="0" cy="-5" r="2.2" fill="#F84C4C" />
+              <circle cx="5" cy="-2" r="2.2" fill="#FFB100" />
+              <circle cx="3" cy="4.5" r="2.2" fill="#00C1D5" />
+              <circle cx="-3" cy="4.5" r="2.2" fill="#75C736" />
+              <circle cx="-5" cy="-2" r="2.2" fill="#9B51E0" />
+            </g>
+          </svg>
+        );
+
+      case "indigo":
+        return (
+          <svg viewBox="0 0 24 24" className="h-full w-full" fill="none" aria-label="IndiGo logo">
+            <rect width="24" height="24" rx="4.5" fill="#001B94" />
+            <path d="M4 16 L12 6 L14 6 L10 16 Z" fill="#FFFFFF" />
+            <path d="M12 16 L18 9 L20 9 L15 16 Z" fill="#60A5FA" />
+            <circle cx="17.5" cy="7.5" r="1.5" fill="#F59E0B" />
+          </svg>
+        );
+
+      case "razorpay":
+        return (
+          <svg viewBox="0 0 24 24" className="h-full w-full" fill="none" aria-label="Razorpay logo">
+            <rect width="24" height="24" rx="4.5" fill="#0C2340" />
+            <path
+              d="M7 19l4.5-14h3.8l-3.2 6.5h4.2l-6.5 7.5H7z"
+              fill="#3395FF"
+            />
+            <path
+              d="M12.8 11.5l3.5-6h-3.8l-1.5 6h1.8z"
+              fill="#0284C7"
+            />
+          </svg>
+        );
+
+      case "figma":
+        return (
+          <svg viewBox="0 0 24 24" className="h-full w-full" fill="none" aria-label="Figma logo">
+            <rect width="24" height="24" rx="4.5" fill="#FFFFFF" className="dark:fill-slate-900" />
+            <path d="M8.5 4.5h3.5v3.5h-3.5a1.75 1.75 0 0 1 0-3.5z" fill="#F24E1E" />
+            <path d="M12 4.5h3.5a1.75 1.75 0 0 1 0 3.5H12V4.5z" fill="#FF7262" />
+            <path d="M8.5 8h3.5v3.5h-3.5a1.75 1.75 0 0 1 0-3.5z" fill="#A259FF" />
+            <circle cx="13.75" cy="9.75" r="1.75" fill="#1ABCFE" />
+            <path d="M8.5 11.5h3.5v3.5a1.75 1.75 0 0 1-3.5 0v-3.5z" fill="#0ACF83" />
+          </svg>
+        );
+
+      case "bechtel":
+        return (
+          <svg viewBox="0 0 24 24" className="h-full w-full" fill="none" aria-label="Bechtel logo">
+            <rect width="24" height="24" rx="4.5" fill="#002D62" />
+            <circle cx="12" cy="12" r="7.5" stroke="#C8232B" strokeWidth="2" fill="none" />
+            <text x="7.5" y="15.5" fontFamily="sans-serif" fontSize="9" fontWeight="900" fill="#FFFFFF">
+              B
+            </text>
+          </svg>
+        );
+
+      case "gartner":
+        return (
+          <svg viewBox="0 0 24 24" className="h-full w-full" fill="none" aria-label="Gartner logo">
+            <rect width="24" height="24" rx="4.5" fill="#002B49" />
+            <text x="4" y="16.5" fontFamily="Georgia, serif" fontSize="11" fontWeight="bold" fill="#00A3E0">
+              G
+            </text>
+          </svg>
+        );
+
+      case "macquarie":
+        return (
+          <svg viewBox="0 0 24 24" className="h-full w-full" fill="none" aria-label="Macquarie logo">
+            <rect width="24" height="24" rx="4.5" fill="#111111" />
+            <circle cx="12" cy="12" r="7" stroke="#FFFFFF" strokeWidth="2.5" fill="none" />
+            <circle cx="12" cy="12" r="3" fill="#FFFFFF" />
+          </svg>
+        );
+
+      case "khatabook":
+        return (
+          <svg viewBox="0 0 24 24" className="h-full w-full" fill="none" aria-label="Khatabook logo">
+            <rect width="24" height="24" rx="4.5" fill="#C8232B" />
+            <path d="M6 6h10a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6V6z" fill="#FFFFFF" />
+            <path d="M8 9h6M8 12h4" stroke="#C8232B" strokeWidth="1.5" strokeLinecap="round" />
+          </svg>
+        );
+
+      case "quantizer":
+        return (
+          <svg viewBox="0 0 24 24" className="h-full w-full" fill="none" aria-label="Quantizer logo">
+            <rect width="24" height="24" rx="4.5" fill="#00A3E0" />
+            <circle cx="11" cy="11" r="5" stroke="#FFFFFF" strokeWidth="2.2" fill="none" />
+            <line x1="14.5" y1="14.5" x2="19" y2="19" stroke="#FFFFFF" strokeWidth="2.5" strokeLinecap="round" />
+          </svg>
+        );
+
+      case "kapstan":
+        return (
+          <svg viewBox="0 0 24 24" className="h-full w-full" fill="none" aria-label="Kapstan logo">
+            <rect width="24" height="24" rx="4.5" fill="#1A1A1A" />
+            <circle cx="12" cy="12" r="6" stroke="#60A5FA" strokeWidth="1.8" fill="none" />
+            <path d="M12 6v12M6 12h12" stroke="#60A5FA" strokeWidth="1.8" />
+          </svg>
+        );
+
+      case "innov8":
+        return (
+          <svg viewBox="0 0 24 24" className="h-full w-full" fill="none" aria-label="Innov8 logo">
+            <rect width="24" height="24" rx="4.5" fill="#EE2E24" />
+            <text x="3.5" y="15.2" fontFamily="sans-serif" fontSize="7.5" fontWeight="bold" fill="#FFFFFF">
+              in8
+            </text>
+          </svg>
+        );
+
+      case "magicpin":
+        return (
+          <svg viewBox="0 0 24 24" className="h-full w-full" fill="none" aria-label="Magicpin logo">
+            <rect width="24" height="24" rx="4.5" fill="#7B1FA2" />
+            <circle cx="12" cy="10" r="4" fill="#FFFFFF" />
+            <polygon points="9,12 15,12 12,18" fill="#FFFFFF" />
+            <circle cx="12" cy="10" r="2" fill="#7B1FA2" />
+          </svg>
+        );
+
+      case "humantic":
+        return (
+          <svg viewBox="0 0 24 24" className="h-full w-full" fill="none" aria-label="Humantic AI logo">
+            <rect width="24" height="24" rx="4.5" fill="#FF9900" />
+            <circle cx="12" cy="11" r="5" stroke="#FFFFFF" strokeWidth="2" fill="none" />
+            <circle cx="16" cy="16" r="2" fill="#FFFFFF" />
+          </svg>
+        );
+
+      case "leena":
+        return (
+          <svg viewBox="0 0 24 24" className="h-full w-full" fill="none" aria-label="Leena AI logo">
+            <rect width="24" height="24" rx="4.5" fill="#1976D2" />
+            <text x="5" y="16.5" fontFamily="sans-serif" fontSize="11" fontWeight="bold" fill="#FFFFFF">
+              L
+            </text>
+            <circle cx="16" cy="9" r="2" fill="#64B5F6" />
+          </svg>
+        );
+
+      case "material":
+        return (
+          <svg viewBox="0 0 24 24" className="h-full w-full" fill="none" aria-label="Material+ logo">
+            <rect width="24" height="24" rx="4.5" fill="#1A1A1A" />
+            <text x="3" y="15" fontFamily="sans-serif" fontSize="8" fontWeight="bold" fill="#FFFFFF">
+              M+
+            </text>
+          </svg>
+        );
+
+      case "headlamp":
+        return (
+          <svg viewBox="0 0 24 24" className="h-full w-full" fill="none" aria-label="Headlamp logo">
+            <rect width="24" height="24" rx="4.5" fill="#212121" />
+            <polygon points="12,5 18,17 6,17" fill="#F59E0B" />
+            <circle cx="12" cy="13" r="2" fill="#212121" />
+          </svg>
+        );
+
+      case "kimball":
+        return (
+          <svg viewBox="0 0 24 24" className="h-full w-full" fill="none" aria-label="Kimball logo">
+            <rect width="24" height="24" rx="4.5" fill="#005696" />
+            <text x="6" y="16.5" fontFamily="Georgia, serif" fontSize="12" fontWeight="bold" fill="#FFFFFF">
+              K
+            </text>
+          </svg>
+        );
+
+      case "nexalis":
+        return (
+          <svg viewBox="0 0 24 24" className="h-full w-full" fill="none" aria-label="Nexalis logo">
+            <rect width="24" height="24" rx="4.5" fill="#1C3D5A" />
+            <text x="5" y="16.5" fontFamily="sans-serif" fontSize="12" fontWeight="900" fill="#E2E8F0">
+              N
+            </text>
+          </svg>
+        );
+
+      case "limeroad":
+        return (
+          <svg viewBox="0 0 24 24" className="h-full w-full" fill="none" aria-label="LimeRoad logo">
+            <rect width="24" height="24" rx="4.5" fill="#7CB342" />
+            <circle cx="12" cy="12" r="8" fill="#8BC34A" />
+            <text x="4.5" y="15" fontFamily="sans-serif" fontSize="7" fontWeight="bold" fill="#FFFFFF">
+              LR
+            </text>
+          </svg>
+        );
+
+      case "zupay":
+        return (
+          <svg viewBox="0 0 24 24" className="h-full w-full" fill="none" aria-label="ZuPay logo">
+            <rect width="24" height="24" rx="4.5" fill="#6C5CE7" />
+            <path d="M7 7h10l-6.5 10H17" stroke="#FFFFFF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        );
+
       default:
         if (meta?.domain && !imgError) {
           return (
             <img
-              src={`https://logo.clearbit.com/${meta.domain}`}
+              src={`https://www.google.com/s2/favicons?domain=${meta.domain}&sz=128`}
               alt={`${company} logo`}
-              className="h-full w-full rounded-sm object-contain"
+              className="h-full w-full rounded-sm object-contain p-0.5"
               onError={() => setImgError(true)}
             />
           );
         }
         return (
           <div
-            className="flex h-full w-full items-center justify-center rounded-sm font-semibold text-white shadow-xs"
-            style={{ backgroundColor: meta?.brandColor || "#334155" }}
+            className="flex h-full w-full items-center justify-center rounded-sm font-semibold text-white shadow-xs font-mono"
+            style={{ backgroundColor: meta?.brandColor || "#2A3644" }}
           >
-            {meta?.mark || company.charAt(0).toUpperCase()}
+            {meta?.mark || company.substring(0, 2).toUpperCase()}
           </div>
         );
     }
