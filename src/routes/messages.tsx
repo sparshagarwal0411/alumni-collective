@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Monogram, PageHead, SampleTag, Section } from "@/components/site/ui";
 import { profilesQuery } from "@/lib/queries";
 import { useAuth } from "@/lib/auth";

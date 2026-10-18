@@ -27,7 +27,7 @@ const NAV = [
   { to: "/directory", label: "Directory" },
   // { to: "/jobs", label: "Jobs" },
   // { to: "/student", label: "Student Folio" },
-  { to: "/communities", label: "Communities" },
+  // { to: "/communities", label: "Communities" }, 
   { to: "/events", label: "Events" },
   { to: "/network", label: "Network" },
   { to: "/updates", label: "Updates" },
@@ -51,6 +51,24 @@ export function Header() {
               {n.label}
             </Link>
           ))}
+          {user && (
+            <>
+              <Link
+                to="/tasks"
+                className="text-ink-soft hover:text-foreground"
+                activeProps={{ className: "text-foreground underline underline-offset-8 decoration-accent" }}
+              >
+                Bounty
+              </Link>
+              <Link
+                to="/messages"
+                className="text-ink-soft hover:text-foreground"
+                activeProps={{ className: "text-foreground underline underline-offset-8 decoration-accent" }}
+              >
+                Messages
+              </Link>
+            </>
+          )}
         </nav>
         <div className="hidden items-center gap-5 text-sm lg:flex">
           {user ? (
@@ -93,6 +111,8 @@ export function Header() {
             ))}
             {user ? (
               <>
+                <li><Link to="/tasks">Bounty</Link></li>
+                <li><Link to="/messages">Messages</Link></li>
                 <li><Link to="/dashboard" className="text-accent">Dashboard ({currentRole})</Link></li>
                 <li><button onClick={() => signOut().then(() => navigate({ to: "/", replace: true }))}>Sign out</button></li>
               </>

@@ -275,23 +275,24 @@ export function UnifiedDashboardPage() {
   const roleTabs = useMemo(() => {
     if (activePersona === "student") {
       return [
+        { id: "folio" as DashboardTab, label: "Student Dossier & Resume", icon: FileText },
         { id: "overview" as DashboardTab, label: "Student Overview", icon: Target },
         { id: "seeking" as DashboardTab, label: "Job Seeking & Referrals", icon: Search },
-        { id: "microtasks" as DashboardTab, label: "Microtasks & Deliverables", icon: Award },
-        { id: "mentorship" as DashboardTab, label: "Alumni Mentors & Office Hours", icon: UserCheck },
-        { id: "folio" as DashboardTab, label: "Student Dossier & Resume", icon: FileText },
-        { id: "messages" as DashboardTab, label: `Direct Messages (${messages.length})`, icon: MessageSquare },
+        // { id: "microtasks" as DashboardTab, label: "Microtasks & Deliverables", icon: Award },
+        // { id: "mentorship" as DashboardTab, label: "Alumni Mentors & Office Hours", icon: UserCheck },
+        // { id: "folio" as DashboardTab, label: "Student Dossier & Resume", icon: FileText },
+        // { id: "messages" as DashboardTab, label: `Direct Messages (${messages.length})`, icon: MessageSquare },
         { id: "account" as DashboardTab, label: "Account", icon: Settings },
       ];
     }
     if (activePersona === "alumni") {
       return [
-        { id: "overview" as DashboardTab, label: "Recruiter Command & Pipeline", icon: Target },
+        // { id: "overview" as DashboardTab, label: "Recruiter Command & Pipeline", icon: Target },
         { id: "posting" as DashboardTab, label: "Recruiter Hub & Post Jobs", icon: Plus },
-        { id: "microtasks" as DashboardTab, label: "Commission Work & Reviews", icon: Award },
-        { id: "mentorship" as DashboardTab, label: "Mentorship Requests", icon: UserCheck },
+        // { id: "microtasks" as DashboardTab, label: "Commission Work & Reviews", icon: Award },
+        // { id: "mentorship" as DashboardTab, label: "Mentorship Requests", icon: UserCheck },
         { id: "talent_scout" as DashboardTab, label: "Student Talent & Folios", icon: GraduationCap },
-        { id: "messages" as DashboardTab, label: `Direct Messages (${messages.length})`, icon: MessageSquare },
+        // { id: "messages" as DashboardTab, label: `Direct Messages (${messages.length})`, icon: MessageSquare },
         { id: "account" as DashboardTab, label: "Account", icon: Settings },
       ];
     }
@@ -784,7 +785,7 @@ export function UnifiedDashboardPage() {
               /* STUDENT OVERVIEW */
               <>
                 {/* Student Quick Actions Bar */}
-                <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-1">
+                {/* <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-1">
                   <button
                     type="button"
                     onClick={() => selectTab("seeking")}
@@ -828,23 +829,23 @@ export function UnifiedDashboardPage() {
                     <p className="text-xs text-ink-soft mt-1">
                       Connect 1-on-1 with industry veterans and faculty researchers.
                     </p>
-                  </button>
+                  </button> */}
 
-                  <button
-                    type="button"
-                    onClick={() => selectTab("folio")}
-                    className="p-4 border border-rule bg-paper hover:border-foreground text-left transition-colors group block cursor-pointer"
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="eyebrow">Dossier</span>
-                      <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-foreground" />
-                    </div>
-                    <h4 className="font-display text-base font-bold">Edit Student Folio</h4>
-                    <p className="text-xs text-ink-soft mt-1">
-                      Update projects, GPA, resume PDF, and technical skills.
-                    </p>
-                  </button>
-                </div>
+                {/* <button
+                  type="button"
+                  onClick={() => selectTab("folio")}
+                  className="p-4 border border-rule bg-paper hover:border-foreground text-left transition-colors group block cursor-pointer"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="eyebrow">Dossier</span>
+                    <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-foreground" />
+                  </div>
+                  <h4 className="font-display text-base font-bold">Edit Student Folio</h4>
+                  <p className="text-xs text-ink-soft mt-1">
+                    Update projects, GPA, resume PDF, and technical skills.
+                  </p>
+                </button>
+              </div> */}
 
                 {/* Split layout: Recent Messages + Recommended Opportunities */}
                 <div className="grid lg:grid-cols-12 gap-8">
@@ -986,10 +987,10 @@ export function UnifiedDashboardPage() {
                             </td>
                             <td className="p-3.5">
                               <span className={`inline-flex items-center gap-1 px-2 py-0.5 font-mono text-[10px] uppercase font-semibold ${ref.status === "Vouched & Forwarded"
-                                  ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30"
-                                  : ref.status === "Interview Scheduled"
-                                    ? "bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/30"
-                                    : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30"
+                                ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30"
+                                : ref.status === "Interview Scheduled"
+                                  ? "bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/30"
+                                  : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30"
                                 }`}>
                                 {ref.status}
                               </span>
@@ -1006,177 +1007,7 @@ export function UnifiedDashboardPage() {
               /* ALUMNI & FACULTY RECRUITER COMMAND OVERVIEW */
               <>
                 {/* Recruiter / Faculty Header & Action Bar */}
-                <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-1">
-                  <button
-                    type="button"
-                    onClick={() => setIsPostModalOpen(true)}
-                    className="p-4 border border-accent bg-accent/10 hover:bg-accent hover:text-accent-foreground text-left transition-colors group cursor-pointer"
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="eyebrow text-accent group-hover:text-accent-foreground">Hiring & Lab</span>
-                      <Plus className="h-4 w-4" />
-                    </div>
-                    <h4 className="font-display text-base font-bold">
-                      {activePersona === "alumni" ? "Post Job / Internship" : "Publish Research Grant"}
-                    </h4>
-                    <p className="text-xs text-ink-soft group-hover:text-accent-foreground/80 mt-1">
-                      List openings at your organization with direct internal referral vouching.
-                    </p>
-                  </button>
 
-                  <button
-                    type="button"
-                    onClick={() => selectTab("microtasks")}
-                    className="p-4 border border-rule bg-paper hover:border-foreground text-left transition-colors group cursor-pointer"
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="eyebrow">Proof of Work</span>
-                      <Award className="h-4 w-4 text-accent" />
-                    </div>
-                    <h4 className="font-display text-base font-bold">Commission Microtask</h4>
-                    <p className="text-xs text-ink-soft mt-1">
-                      Assign tasks for 1 binary credibility point; verify student deliverables.
-                    </p>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => selectTab("talent_scout")}
-                    className="p-4 border border-rule bg-paper hover:border-foreground text-left transition-colors group cursor-pointer"
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="eyebrow">Talent Pipeline</span>
-                      <GraduationCap className="h-4 w-4 text-accent" />
-                    </div>
-                    <h4 className="font-display text-base font-bold">Scout Student Folios</h4>
-                    <p className="text-xs text-ink-soft mt-1">
-                      Inspect {SCOUT_STUDENTS.length} verified candidate dossiers, GPAs & code repositories.
-                    </p>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => selectTab("mentorship")}
-                    className="p-4 border border-rule bg-paper hover:border-foreground text-left transition-colors group cursor-pointer"
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="eyebrow">Office Hours</span>
-                      <UserCheck className="h-4 w-4 text-accent" />
-                    </div>
-                    <h4 className="font-display text-base font-bold">Mentorship Calendar</h4>
-                    <p className="text-xs text-ink-soft mt-1">
-                      {openToMentorState ? "✓ Accepting Mentees" : "✕ Advising Paused"} · {mentorshipRequests.length} sessions
-                    </p>
-                  </button>
-                </div>
-
-                {/* Main Candidate Review Console: Incoming Student Applications */}
-                <div className="space-y-4">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-rule pb-2">
-                    <div className="flex items-center gap-2">
-                      <ShieldCheck className="h-5 w-5 text-accent" />
-                      <div>
-                        <h3 className="font-display text-xl font-bold">
-                          {activePersona === "alumni"
-                            ? "Incoming Student Candidates for Internal Referral"
-                            : "Research Assistant & Lab Applicants"}
-                        </h3>
-                        <p className="font-mono text-xs text-muted-foreground">
-                          Review student candidate statements, verify their attached folios, and vouch or schedule interviews.
-                        </p>
-                      </div>
-                    </div>
-                    <span className="font-mono text-xs font-semibold px-2.5 py-1 bg-accent/10 text-accent border border-accent/30 self-start sm:self-auto">
-                      {submittedReferrals.length} Candidates Pending Review
-                    </span>
-                  </div>
-
-                  <div className="border border-rule bg-paper divide-y divide-rule">
-                    {submittedReferrals.map((candidate) => (
-                      <div key={candidate.id} className="p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4 hover:bg-accent/5 transition-colors">
-                        <div className="space-y-2 min-w-0 flex-1">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <h4 className="font-display text-base font-bold text-foreground">
-                              {candidate.candidateName}
-                            </h4>
-                            <span className="font-mono text-[11px] px-2 py-0.5 bg-background border border-rule text-muted-foreground font-semibold">
-                              Ashwood Class of '25 · B.Tech CS
-                            </span>
-                            <span className={`font-mono text-[10px] uppercase font-semibold px-2 py-0.5 border ${candidate.status === "Vouched & Forwarded"
-                                ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30"
-                                : candidate.status === "Interview Scheduled"
-                                  ? "bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/30"
-                                  : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30"
-                              }`}>
-                              {candidate.status}
-                            </span>
-                          </div>
-
-                          <div className="font-mono text-xs text-muted-foreground flex flex-wrap items-center gap-x-3 gap-y-1">
-                            <span>Applying for: <strong className="text-foreground">{candidate.jobTitle}</strong></span>
-                            <span>•</span>
-                            <span>Organization: <strong className="text-foreground">{candidate.company}</strong></span>
-                            <span>•</span>
-                            <span>Submitted: {candidate.submittedAt}</span>
-                          </div>
-
-                          <p className="text-xs text-ink-soft italic bg-background/50 p-2.5 border-l-2 border-accent">
-                            "{candidate.note}"
-                          </p>
-
-                          {candidate.folioAttached && (
-                            <div className="inline-flex items-center gap-1.5 font-mono text-[11px] text-accent font-medium">
-                              <CheckCircle2 className="h-3.5 w-3.5" />
-                              <span>Verified Student Folio Attached: GPA 3.92, 4 Verified Repositories, Systems Architecture</span>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Recruiter / Reviewer Actions */}
-                        <div className="flex flex-wrap items-center gap-2 shrink-0 lg:flex-col lg:items-end">
-                          <div className="flex items-center gap-2">
-                            <button
-                              type="button"
-                              onClick={() => handleVouchCandidate(candidate.id)}
-                              className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 font-mono text-xs font-semibold cursor-pointer transition-colors flex items-center gap-1"
-                            >
-                              <CheckCircle2 className="h-3.5 w-3.5" />
-                              Vouch & Forward to HR
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleScheduleInterview(candidate.id)}
-                              className="border border-rule hover:border-foreground bg-background px-3 py-1.5 font-mono text-xs font-semibold cursor-pointer transition-colors"
-                            >
-                              Schedule Screening
-                            </button>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const target = chatPartners[0];
-                                if (target) setActiveChatPartnerId(target.id);
-                                selectTab("messages");
-                              }}
-                              className="font-mono text-xs text-accent hover:underline flex items-center gap-1 cursor-pointer"
-                            >
-                              <MessageSquare className="h-3.5 w-3.5" /> Message Candidate
-                            </button>
-                            <span className="text-rule">•</span>
-                            <button
-                              type="button"
-                              onClick={() => handleDeclineReferral(candidate.id)}
-                              className="font-mono text-xs text-muted-foreground hover:text-destructive cursor-pointer"
-                            >
-                              Archive
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
 
                 {/* Secondary Split: Microtasks Verification Shortcut + Quick Talent Scout */}
                 <div className="grid lg:grid-cols-12 gap-8">
@@ -1540,10 +1371,10 @@ export function UnifiedDashboardPage() {
                         <div className="flex items-center gap-2">
                           <h5 className="font-display text-base font-bold text-foreground">{c.candidateName}</h5>
                           <span className={`font-mono text-[10px] uppercase font-semibold px-2 py-0.5 border ${c.status === "Vouched & Forwarded"
-                              ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30"
-                              : c.status === "Interview Scheduled"
-                                ? "bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/30"
-                                : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30"
+                            ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30"
+                            : c.status === "Interview Scheduled"
+                              ? "bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/30"
+                              : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30"
                             }`}>
                             {c.status}
                           </span>
