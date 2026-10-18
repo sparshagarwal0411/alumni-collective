@@ -22,6 +22,7 @@ import { Route as MentorshipRouteImport } from './routes/mentorship'
 import { Route as MessagesRouteImport } from './routes/messages'
 import { Route as NetworkRouteImport } from './routes/network'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as StudentRouteImport } from './routes/student'
 import { Route as TasksRouteImport } from './routes/tasks'
 import { Route as UpdatesRouteImport } from './routes/updates'
 import { Route as AlumniIdRouteImport } from './routes/alumni.$id'
@@ -91,6 +92,11 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
   path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StudentRoute = StudentRouteImport.update({
+  id: '/student',
+  path: '/student',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TasksRoute = TasksRouteImport.update({
   id: '/tasks',
   path: '/tasks',
@@ -121,6 +127,7 @@ export interface FileRoutesByFullPath {
   '/messages': typeof MessagesRoute
   '/network': typeof NetworkRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/student': typeof StudentRoute
   '/tasks': typeof TasksRoute
   '/updates': typeof UpdatesRoute
   '/alumni/$id': typeof AlumniIdRoute
@@ -139,6 +146,7 @@ export interface FileRoutesByTo {
   '/messages': typeof MessagesRoute
   '/network': typeof NetworkRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/student': typeof StudentRoute
   '/tasks': typeof TasksRoute
   '/updates': typeof UpdatesRoute
   '/alumni/$id': typeof AlumniIdRoute
@@ -158,6 +166,7 @@ export interface FileRoutesById {
   '/messages': typeof MessagesRoute
   '/network': typeof NetworkRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/student': typeof StudentRoute
   '/tasks': typeof TasksRoute
   '/updates': typeof UpdatesRoute
   '/alumni/$id': typeof AlumniIdRoute
@@ -178,6 +187,7 @@ export interface FileRouteTypes {
     | '/messages'
     | '/network'
     | '/reset-password'
+    | '/student'
     | '/tasks'
     | '/updates'
     | '/alumni/$id'
@@ -196,6 +206,7 @@ export interface FileRouteTypes {
     | '/messages'
     | '/network'
     | '/reset-password'
+    | '/student'
     | '/tasks'
     | '/updates'
     | '/alumni/$id'
@@ -214,6 +225,7 @@ export interface FileRouteTypes {
     | '/messages'
     | '/network'
     | '/reset-password'
+    | '/student'
     | '/tasks'
     | '/updates'
     | '/alumni/$id'
@@ -233,6 +245,7 @@ export interface RootRouteChildren {
   MessagesRoute: typeof MessagesRoute
   NetworkRoute: typeof NetworkRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  StudentRoute: typeof StudentRoute
   TasksRoute: typeof TasksRoute
   UpdatesRoute: typeof UpdatesRoute
   AlumniIdRoute: typeof AlumniIdRoute
@@ -331,6 +344,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/student': {
+      id: '/student'
+      path: '/student'
+      fullPath: '/student'
+      preLoaderRoute: typeof StudentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/tasks': {
       id: '/tasks'
       path: '/tasks'
@@ -369,6 +389,7 @@ const rootRouteChildren: RootRouteChildren = {
   MessagesRoute: MessagesRoute,
   NetworkRoute: NetworkRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  StudentRoute: StudentRoute,
   TasksRoute: TasksRoute,
   UpdatesRoute: UpdatesRoute,
   AlumniIdRoute: AlumniIdRoute,
